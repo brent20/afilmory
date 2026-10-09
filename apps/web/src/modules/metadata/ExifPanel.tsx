@@ -9,7 +9,7 @@ import { m } from 'motion/react'
 import type { FC } from 'react'
 import { Fragment, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-
+import { MiniMap } from './MiniMap'
 import { isExiftoolLoadedAtom } from '~/atoms/app'
 import { useMobile } from '~/hooks/useMobile'
 import {
@@ -19,7 +19,7 @@ import {
   TablerAperture,
 } from '~/icons'
 import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
-
+import { convertExifGPSToDecimal } from '~/lib/map-utils'
 import { ExifRowGroup, ExifSection } from './ExifSection'
 import { formatExifData, Row } from './formatExifData'
 import { HistogramChart } from './HistogramChart'
@@ -130,6 +130,10 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
   const { t } = useTranslation()
   const isMobile = useMobile()
   const formattedExifData = useMemo(() => formatExifData(exifData), [exifData])
+  const gpsData = useMemo(() => convertExifGPSToDecimal(exifData), [exifData])
+  const decimalLatitude = gpsData?.latitude ?? null
+  const decimalLongitude = gpsData?.longitude ?? null
+
   const regions = useMemo(
     () =>
       getRenderablePhotoRegions(
