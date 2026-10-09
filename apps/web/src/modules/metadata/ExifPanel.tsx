@@ -163,6 +163,24 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
           </ExifRowGroup>
         </ExifSection>
 
+        
+   {formattedExifData && (
+          <Fragment>
+            {(formattedExifData.camera || formattedExifData.lens) && (
+              <ExifSection title={t('exif.device.info')}>
+                <ExifRowGroup>
+                  {formattedExifData.camera && <Row label={t('exif.camera')} value={formattedExifData.camera} />}
+                  {formattedExifData.lens && <Row label={t('exif.lens')} value={formattedExifData.lens} />}
+                  {formattedExifData.focalLength && (
+                    <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
+                  )}
+                  {formattedExifData.maxAperture && (
+                    <Row label={t('exif.max.aperture')} value={`f/${formattedExifData.maxAperture}`} />
+                  )}
+                </ExifRowGroup>
+              </ExifSection>
+            )}
+
         {formattedExifData
           && (formattedExifData.shutterSpeed
             || formattedExifData.iso
@@ -264,23 +282,41 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
           </ExifSection>
         )}
 
-        {formattedExifData && (
-          <Fragment>
-            {(formattedExifData.camera || formattedExifData.lens) && (
-              <ExifSection title={t('exif.device.info')}>
+        
+
+            
+          {formattedExifData.gps && (
+              <ExifSection title={t('exif.gps.location.info')} className="gap-3">
                 <ExifRowGroup>
-                  {formattedExifData.camera && <Row label={t('exif.camera')} value={formattedExifData.camera} />}
-                  {formattedExifData.lens && <Row label={t('exif.lens')} value={formattedExifData.lens} />}
-                  {formattedExifData.focalLength && (
-                    <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
-                  )}
-                  {formattedExifData.maxAperture && (
-                    <Row label={t('exif.max.aperture')} value={`f/${formattedExifData.maxAperture}`} />
+                  <Row label={t('exif.gps.latitude')} value={formattedExifData.gps.latitude} />
+                  <Row label={t('exif.gps.longitude')} value={formattedExifData.gps.longitude} />
+                  {formattedExifData.gps.altitude && (
+                    <Row label={t('exif.gps.altitude')} value={`${formattedExifData.gps.altitude}m`} />
                   )}
                 </ExifRowGroup>
+
+                {currentPhoto.location && (
+                  <ExifRowGroup>
+                    {(currentPhoto.location.city || currentPhoto.location.country) && (
+                      <Row
+                        label={t('exif.gps.city')}
+                        value={[currentPhoto.location.city, currentPhoto.location.country].filter(Boolean).join(', ')}
+                      />
+                    )}
+                    {currentPhoto.location.locationName && (
+                      <Row label={t('exif.gps.address')} value={currentPhoto.location.locationName} ellipsis={true} />
+                    )}
+                  </ExifRowGroup>
+                )}
+
+                {decimalLatitude !== null && decimalLongitude !== null && (
+                  <MiniMap latitude={decimalLatitude} longitude={decimalLongitude} photoId={currentPhoto.id} />
+                )}
               </ExifSection>
             )}
 
+
+            
             {(formattedExifData.exposureMode
               || formattedExifData.exposureProgram
               || formattedExifData.meteringMode
