@@ -278,7 +278,8 @@ const categories = {
 const RawExifSheet: ModalComponent<{ rawExifData: string | null }> = ({ rawExifData }) => {
   const { t } = useTranslation()
   const parsedData = rawExifData ? parseRawExifData(rawExifData) : {}
-  const dataEntries = Object.entries(parsedData)
+  const hiddenKeys = new Set(['Software', 'Rating'])
+  const dataEntries = Object.entries(parsedData).filter(([key]) => !hiddenKeys.has(key))
 
   const getCategoryData = (categoryKeys: string[]) => {
     return dataEntries.filter(([key]) => categoryKeys.some(catKey => key.includes(catKey)))
