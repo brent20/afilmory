@@ -16,16 +16,13 @@ import {
   CarbonIsoOutline,
   MaterialSymbolsExposure,
   MaterialSymbolsShutterSpeed,
-  StreamlineImageAccessoriesLensesPhotosCameraShutterPicturePhotographyPicturesPhotoLens,
   TablerAperture,
 } from '~/icons'
-import { convertExifGPSToDecimal } from '~/lib/map-utils'
 import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
 
 import { ExifRowGroup, ExifSection } from './ExifSection'
 import { formatExifData, Row } from './formatExifData'
 import { HistogramChart } from './HistogramChart'
-import { MiniMap } from './MiniMap'
 import { PhotoRegionsSection } from './PhotoRegionsSection'
 import { RawExifViewer } from './RawExifViewer'
 
@@ -144,15 +141,6 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
       ),
     [currentPhoto],
   )
-  const gpsData = useMemo(() => convertExifGPSToDecimal(exifData), [exifData])
-  const decimalLatitude = gpsData?.latitude ?? null
-  const decimalLongitude = gpsData?.longitude ?? null
-  const megaPixels = useMemo(() => {
-    if (!currentPhoto.height || !currentPhoto.width) {
-      return null
-    }
-    return (((currentPhoto.height * currentPhoto.width) / 1_000_000) | 0).toString()
-  }, [currentPhoto.height, currentPhoto.width])
 
   const handleTagClick = useCallback(
     (tag: string) => {
@@ -170,22 +158,8 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
       <div className={clsxm('flex flex-col', isMobile ? 'gap-3' : 'gap-4')}>
         <ExifSection title={t('exif.basic.info')}>
           <ExifRowGroup>
-            <Row label={t('exif.filename')} value={currentPhoto.title} ellipsis={true} />
-            <Row label={t('exif.format')} value={currentPhoto.format} />
-            <Row label={t('exif.dimensions')} value={`${currentPhoto.width} × ${currentPhoto.height}`} />
-            <Row label={t('exif.file.size')} value={`${(currentPhoto.size / 1024 / 1024).toFixed(1)}MB`} />
-            {megaPixels && <Row label={t('exif.pixels')} value={`${megaPixels} MP`} />}
-            {formattedExifData?.colorSpace && (
-              <Row label={t('exif.color.space')} value={formattedExifData.colorSpace} />
-            )}
-            {formattedExifData?.rating && formattedExifData.rating > 0 ? (
-              <Row label={t('exif.rating')} value={'★'.repeat(formattedExifData.rating)} />
-            ) : null}
             {formattedExifData?.dateTime && <Row label={t('exif.capture.time')} value={formattedExifData.dateTime} />}
-            {formattedExifData?.zone && <Row label={t('exif.time.zone')} value={formattedExifData.zone} />}
-            {formattedExifData?.artist && <Row label={t('exif.artist')} value={formattedExifData.artist} />}
             {formattedExifData?.copyright && <Row label={t('exif.copyright')} value={formattedExifData.copyright} />}
-            {formattedExifData?.software && <Row label={t('exif.software')} value={formattedExifData.software} />}
           </ExifRowGroup>
         </ExifSection>
 
@@ -193,20 +167,9 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
           && (formattedExifData.shutterSpeed
             || formattedExifData.iso
             || formattedExifData.aperture
-            || formattedExifData.exposureBias
-            || formattedExifData.focalLength35mm) && (
+            || formattedExifData.exposureBias) && (
           <ExifSection title={t('exif.capture.parameters')}>
             <div className="grid grid-cols-2 gap-2">
-              {formattedExifData.focalLength35mm && (
-                <div className={captureChipClassName}>
-                  <StreamlineImageAccessoriesLensesPhotosCameraShutterPicturePhotographyPicturesPhotoLens className="text-sm text-white/70" />
-                  <span className="text-xs">
-                    {formattedExifData.focalLength35mm}
-                    mm
-                  </span>
-                </div>
-              )}
-
               {formattedExifData.aperture && (
                 <div className={captureChipClassName}>
                   <TablerAperture className="text-sm text-white/70" />
@@ -308,14 +271,8 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                 <ExifRowGroup>
                   {formattedExifData.camera && <Row label={t('exif.camera')} value={formattedExifData.camera} />}
                   {formattedExifData.lens && <Row label={t('exif.lens')} value={formattedExifData.lens} />}
-                  {formattedExifData.lensMake && !formattedExifData.lens?.includes(formattedExifData.lensMake) && (
-                    <Row label={t('exif.lensmake')} value={formattedExifData.lensMake} />
-                  )}
                   {formattedExifData.focalLength && (
                     <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
-                  )}
-                  {formattedExifData.focalLength35mm && (
-                    <Row label={t('exif.focal.length.equivalent')} value={`${formattedExifData.focalLength35mm}mm`} />
                   )}
                   {formattedExifData.maxAperture && (
                     <Row label={t('exif.max.aperture')} value={`f/${formattedExifData.maxAperture}`} />
@@ -328,7 +285,6 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
               || formattedExifData.exposureProgram
               || formattedExifData.meteringMode
               || formattedExifData.whiteBalance
-              || formattedExifData.lightSource
               || formattedExifData.flash) && (
               <ExifSection title={t('exif.capture.mode')}>
                 <ExifRowGroup>
@@ -344,141 +300,8 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                   {!isNil(formattedExifData.whiteBalance) && (
                     <Row label={t('exif.white.balance.title')} value={formattedExifData.whiteBalance} />
                   )}
-                  {!isNil(formattedExifData.whiteBalanceBias) && (
-                    <Row label={t('exif.white.balance.bias')} value={`${formattedExifData.whiteBalanceBias} Mired`} />
-                  )}
-                  {!isNil(formattedExifData.wbShiftAB) && (
-                    <Row label={t('exif.white.balance.shift.ab')} value={formattedExifData.wbShiftAB} />
-                  )}
-                  {!isNil(formattedExifData.wbShiftGM) && (
-                    <Row label={t('exif.white.balance.shift.gm')} value={formattedExifData.wbShiftGM} />
-                  )}
                   {!isNil(formattedExifData.flash) && (
                     <Row label={t('exif.flash.title')} value={formattedExifData.flash} />
-                  )}
-                  {!isNil(formattedExifData.lightSource) && (
-                    <Row label={t('exif.light.source.type')} value={formattedExifData.lightSource} />
-                  )}
-                  {!isNil(formattedExifData.sceneCaptureType) && (
-                    <Row label={t('exif.scene.capture.type')} value={formattedExifData.sceneCaptureType} />
-                  )}
-                  {!isNil(formattedExifData.flashMeteringMode) && (
-                    <Row label={t('exif.flash.metering.mode')} value={formattedExifData.flashMeteringMode} />
-                  )}
-                </ExifRowGroup>
-              </ExifSection>
-            )}
-
-            {formattedExifData.fujiRecipe && (
-              <ExifSection title={t('exif.fuji.film.simulation')}>
-                <ExifRowGroup>
-                  {formattedExifData.fujiRecipe.FilmMode && (
-                    <Row label={t('exif.film.mode')} value={formattedExifData.fujiRecipe.FilmMode} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.DynamicRange) && (
-                    <Row label={t('exif.dynamic.range')} value={formattedExifData.fujiRecipe.DynamicRange} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.WhiteBalance) && (
-                    <Row label={t('exif.white.balance.title')} value={formattedExifData.fujiRecipe.WhiteBalance} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.HighlightTone) && (
-                    <Row label={t('exif.highlight.tone')} value={formattedExifData.fujiRecipe.HighlightTone} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.ShadowTone) && (
-                    <Row label={t('exif.shadow.tone')} value={formattedExifData.fujiRecipe.ShadowTone} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.Saturation) && (
-                    <Row label={t('exif.saturation')} value={formattedExifData.fujiRecipe.Saturation} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.Sharpness) && (
-                    <Row label={t('exif.sharpness')} value={formattedExifData.fujiRecipe.Sharpness} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.NoiseReduction) && (
-                    <Row label={t('exif.noise.reduction')} value={formattedExifData.fujiRecipe.NoiseReduction} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.Clarity) && (
-                    <Row label={t('exif.clarity')} value={formattedExifData.fujiRecipe.Clarity} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.ColorChromeEffect) && (
-                    <Row label={t('exif.color.effect')} value={formattedExifData.fujiRecipe.ColorChromeEffect} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.ColorChromeFxBlue) && (
-                    <Row label={t('exif.blue.color.effect')} value={formattedExifData.fujiRecipe.ColorChromeFxBlue} />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.WhiteBalanceFineTune) && (
-                    <Row
-                      label={t('exif.white.balance.fine.tune')}
-                      value={formattedExifData.fujiRecipe.WhiteBalanceFineTune}
-                    />
-                  )}
-                  {formattedExifData.fujiRecipe.GrainEffectRoughness && (
-                    <Row
-                      label={t('exif.grain.effect.intensity')}
-                      value={formattedExifData.fujiRecipe.GrainEffectRoughness}
-                    />
-                  )}
-                  {!isNil(formattedExifData.fujiRecipe.GrainEffectSize) && (
-                    <Row label={t('exif.grain.effect.size')} value={formattedExifData.fujiRecipe.GrainEffectSize} />
-                  )}
-                </ExifRowGroup>
-              </ExifSection>
-            )}
-
-            {formattedExifData.gps && (
-              <ExifSection title={t('exif.gps.location.info')} className="gap-3">
-                <ExifRowGroup>
-                  <Row label={t('exif.gps.latitude')} value={formattedExifData.gps.latitude} />
-                  <Row label={t('exif.gps.longitude')} value={formattedExifData.gps.longitude} />
-                  {formattedExifData.gps.altitude && (
-                    <Row label={t('exif.gps.altitude')} value={`${formattedExifData.gps.altitude}m`} />
-                  )}
-                </ExifRowGroup>
-
-                {currentPhoto.location && (
-                  <ExifRowGroup>
-                    {(currentPhoto.location.city || currentPhoto.location.country) && (
-                      <Row
-                        label={t('exif.gps.city')}
-                        value={[currentPhoto.location.city, currentPhoto.location.country].filter(Boolean).join(', ')}
-                      />
-                    )}
-                    {currentPhoto.location.locationName && (
-                      <Row label={t('exif.gps.address')} value={currentPhoto.location.locationName} ellipsis={true} />
-                    )}
-                  </ExifRowGroup>
-                )}
-
-                {decimalLatitude !== null && decimalLongitude !== null && (
-                  <MiniMap latitude={decimalLatitude} longitude={decimalLongitude} photoId={currentPhoto.id} />
-                )}
-              </ExifSection>
-            )}
-
-            {(formattedExifData.brightnessValue
-              || formattedExifData.shutterSpeedValue
-              || formattedExifData.apertureValue
-              || formattedExifData.sensingMethod
-              || formattedExifData.focalPlaneXResolution
-              || formattedExifData.focalPlaneYResolution) && (
-              <ExifSection title={t('exif.technical.parameters')}>
-                <ExifRowGroup>
-                  {formattedExifData.brightnessValue && (
-                    <Row label={t('exif.brightness.value')} value={formattedExifData.brightnessValue} />
-                  )}
-                  {formattedExifData.shutterSpeedValue && (
-                    <Row label={t('exif.shutter.speed.value')} value={formattedExifData.shutterSpeedValue} />
-                  )}
-                  {formattedExifData.apertureValue && (
-                    <Row label={t('exif.aperture.value')} value={formattedExifData.apertureValue} />
-                  )}
-                  {formattedExifData.sensingMethod && (
-                    <Row label={t('exif.sensing.method.type')} value={formattedExifData.sensingMethod} />
-                  )}
-                  {(formattedExifData.focalPlaneXResolution || formattedExifData.focalPlaneYResolution) && (
-                    <Row
-                      label={t('exif.focal.plane.resolution')}
-                      value={`${formattedExifData.focalPlaneXResolution || t('exif.not.available')} × ${formattedExifData.focalPlaneYResolution || t('exif.not.available')}`}
-                    />
                   )}
                 </ExifRowGroup>
               </ExifSection>
