@@ -1,0 +1,36 @@
+{
+  "name": "Brent Saltzman",
+  "title": "Brent Saltzman",
+  "description": "Interested in all things technology with a passion for analog, design, audio, and anything that sparks creativity and imagination.",
+  "url": "https://photos.bbs.tools/",
+  "accentColor": "#56817A",
+  "viewer": {
+    "regions": {
+      "accentSource": "system",
+      "labelPlacement": "edge"
+    }
+  },
+  "author": {
+    "name": "Brent",
+    "url": "https://brentsaltzman.com"
+   
+  },
+  "social": {
+    "github": "",
+    "twitter": "brentb_s"
+  },
+  "feed": {
+    "folo": {
+      "challenge": {
+        "feedId": "",
+        "userId": ""
+      }
+    }
+  },
+  "map": [
+    "maplibre"
+  ],
+  "mapStyle": "builtin",
+  "mapProjection": "mercator"
+ 
+  }
