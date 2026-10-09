@@ -366,13 +366,12 @@ export const ProgressiveImage = ({
       )}
 
       {/* 高分辨率图片 - 只在成功加载且非错误状态时显示 */}
-      {highResLoaded && blobSrc && isActiveImage && !error && (
-        <div
-          className="absolute inset-0 h-full w-full"
-          onContextMenu={(e) => {
-            const items = createContextMenuItems(blobSrc, alt, t)
-            showContextMenu(items, e)
-          }}
+{highResLoaded && blobSrc && isActiveImage && !error && (
+  <div
+    className="absolute inset-0 h-full w-full"
+    onContextMenu={(e) => {
+      e.preventDefault()
+    }}
         >
           <div
             ref={imageViewerHostRef}
