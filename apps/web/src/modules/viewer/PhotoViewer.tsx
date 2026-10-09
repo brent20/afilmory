@@ -30,7 +30,6 @@ import { deriveAccentFromSources } from '~/lib/color'
 import type { LoadingIndicatorRef } from '~/modules/inspector/LoadingIndicator'
 import { LoadingIndicator } from '~/modules/inspector/LoadingIndicator'
 import { PhotoInspector } from '~/modules/inspector/PhotoInspector'
-import { ShareModal } from '~/modules/social/ShareModal'
 import type { PhotoManifest } from '~/types/photo'
 
 import { ReactionRail } from '../social'
@@ -499,21 +498,6 @@ export const PhotoViewer = ({
                             )}
                           </ActionButton>
                         )}
-
-                        {/* 分享按钮 */}
-                        <ShareModal
-                          photo={currentPhoto}
-                          blobSrc={currentBlobSrc || undefined}
-                          trigger={(
-                            <ActionButton
-                              disabled={!isMobileChromeInteractive}
-                              className={mobileChromeButtonClassName}
-                              title={t('photo.share.title')}
-                            >
-                              <i className="i-mingcute-share-2-line" />
-                            </ActionButton>
-                          )}
-                        />
 
                         {/* 展开信息面板（桌面端在折叠时显示） */}
                         {!isMobile && !isInspectorVisible && (
