@@ -59,7 +59,7 @@ export const ShareModal = ({ photo, trigger, blobSrc }: ShareModalTriggerProps) 
   )
 }
 
-const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }) => {
+const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, dismiss }) => {
   const { t } = useTranslation()
   const [isOgImageLoading, setIsOgImageLoading] = useState(true)
 
@@ -96,33 +96,9 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
   const shareTitle = photo.title || t('photo.share.default.title')
   const shareText = t('photo.share.text', { title: shareTitle })
 
-  const canUseNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function'
-
   const socialOptions = useMemo(() => getSocialOptions(t), [t])
 
-  const actionColumns = 3 + (canUseNativeShare ? 1 : 0) + (canEmbed ? 1 : 0)
-
-  const handleNativeShare = useCallback(async () => {
-    if (!canUseNativeShare) {
-      return
-    }
-
-    try {
-      const files = await buildShareFiles(photo, blobSrc)
-      await navigator.share({
-        title: shareTitle,
-        text: shareText,
-        url: shareLink,
-        ...(files.length > 0 ? { files } : {}),
-      })
-      dismiss()
-    }
-    catch {
-      await navigator.clipboard.writeText(shareLink)
-      toast.success(t('photo.share.linkCopied'))
-      dismiss()
-    }
-  }, [blobSrc, canUseNativeShare, dismiss, photo, shareLink, shareText, shareTitle, t])
+  const actionColumns = 3 + (canEmbed ? 1 : 0)
 
   const handleCopyLink = useCallback(async () => {
     try {
@@ -212,20 +188,10 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
         <div
           className={clsxm(
             'grid gap-2',
-            actionColumns === 5 && 'grid-cols-5',
             actionColumns === 4 && 'grid-cols-4',
             actionColumns === 3 && 'grid-cols-3',
           )}
         >
-          {/* Native share button (if available) */}
-          {canUseNativeShare && (
-            <ShareActionButton
-              icon="i-mingcute-share-2-line"
-              label="System"
-              onClick={}
-              title={t('photo.share.system')}
-            />
-          )}
           {/* Social share buttons */}
           {socialOptions.map(option => (
             <ShareActionButton
@@ -252,18 +218,6 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
 
 ShareSheet.contentClassName = 'max-w-3xl w-full z-1000000'
 
-async function buildShareFiles(photo: PhotoManifest, blobSrc?: string) {
-  const imageUrl = blobSrc || photo.originalUrl
-  try {
-    const response = await fetch(imageUrl)
-    const blob = await response.blob()
-    return [new File([blob], `${photo.title || photo.id}.jpg`, { type: blob.type || 'image/jpeg' })]
-  }
-  catch {
-    return []
-  }
-}
-
 function getSocialOptions(t: ReturnType<typeof useTranslation>['t']): SocialShareOption[] {
   return [
     {
@@ -271,7 +225,19 @@ function getSocialOptions(t: ReturnType<typeof useTranslation>['t']): SocialShar
       label: 'Twitter',
       icon: 'i-mingcute-twitter-fill',
       url: 'https://twitter.com/intent/tweet?text={text}&url={url}',
-    }
+    },
+    {
+      id: 'telegram',
+      label: 'Telegram',
+      icon: 'i-mingcute-telegram-line',
+      url: 'https://t.me/share/url?url={url}&text={text}',
+    },
+    {
+      id: 'weibo',
+      label: t('photo.share.weibo'),
+      icon: 'i-mingcute-weibo-line',
+      url: 'https://service.weibo.com/share/share.php?url={url}&title={text}',
+    },
   ]
 }
 
