@@ -23,12 +23,17 @@ interface GeocodingPluginOptions {
   nominatimBaseUrl?: string
   cachePrecision?: number
   /**
+   * User-Agent sent to Nominatim. Nominatim asks every app to identify itself, e.g.
+   * "my-photo-site/1.0 (https://example.com)"; generic agents can get blocked.
+   */
+  userAgent?: string
+  /**
    * Preferred languages for geocoding results (BCP47). Accepts comma-separated string or array.
    */
   language?: string | string[]
 }
 type GeocodingPluginOptionsResolved = Required<Pick<GeocodingPluginOptions, 'enable' | 'provider'>> &
-  Pick<GeocodingPluginOptions, 'mapboxToken' | 'nominatimBaseUrl' | 'cachePrecision'> & {
+  Pick<GeocodingPluginOptions, 'mapboxToken' | 'nominatimBaseUrl' | 'cachePrecision' | 'userAgent'> & {
     language: string | null
   }
 
@@ -36,6 +41,7 @@ interface ResolvedGeocodingSettings {
   provider: 'mapbox' | 'nominatim' | 'auto'
   mapboxToken?: string
   nominatimBaseUrl?: string
+  userAgent?: string
   cachePrecision: number
   language: string | null
 }
@@ -75,6 +81,7 @@ function resolveSettings(options: GeocodingPluginOptions): GeocodingPluginOption
     provider: options.provider ?? 'auto',
     mapboxToken: options.mapboxToken,
     nominatimBaseUrl: options.nominatimBaseUrl,
+    userAgent: options.userAgent?.trim() || undefined,
     cachePrecision: normalizeCachePrecision(options.cachePrecision ?? DEFAULT_CACHE_PRECISION),
     language: normalizeLanguage(options.language),
   }
@@ -96,7 +103,7 @@ function getOrCreateState(runShared: Map<string, unknown>): GeocodingState {
 }
 
 function buildProviderKey(settings: ResolvedGeocodingSettings): string {
-  return `${settings.provider}:${settings.mapboxToken ?? ''}:${settings.nominatimBaseUrl ?? ''}:${settings.language ?? ''}`
+  return `${settings.provider}:${settings.mapboxToken ?? ''}:${settings.nominatimBaseUrl ?? ''}:${settings.userAgent ?? ''}:${settings.language ?? ''}`
 }
 
 function ensureProvider(
@@ -118,6 +125,7 @@ function ensureProvider(
     settings.mapboxToken,
     settings.nominatimBaseUrl,
     settings.language ?? undefined,
+    settings.userAgent,
   )
 
   if (!provider) {
@@ -153,6 +161,14 @@ async function ensurePhotoContext<T>(builder: AfilmoryBuilder, logger: Logger, f
       fn,
     )
   }
+}
+
+/** Add country, state and a single clean city name to the photo's tags. */
+function addLocationTags(item: PhotoManifestItem, location: LocationInfo): void {
+  const locationTags = [location.country, location.state, location.cityName || location.city].filter(
+    (tag): tag is string => Boolean(tag),
+  )
+  item.tags = [...new Set([...(item.tags || []), ...locationTags])]
 }
 
 function buildCacheKey(latitude: number, longitude: number, precision: number): string {
@@ -191,9 +207,7 @@ async function resolveLocationForItem(
   if (cached !== undefined) {
     if (cached) {
       item.location = cached
-      // Add to tags
-      const locTags = [cached.country, cached.state, cached.city].filter(Boolean) as string[]
-      item.tags = [...new Set([...(item.tags || []), ...locTags])]
+      addLocationTags(item, cached)
       return { attempted: true, updated: true }
     }
     if (shouldOverwriteExisting) {
@@ -207,9 +221,7 @@ async function resolveLocationForItem(
 
   if (location) {
     item.location = location
-    // Add to tags
-    const locTags = [location.country, location.state, location.city].filter(Boolean) as string[]
-    item.tags = [...new Set([...(item.tags || []), ...locTags])]
+    addLocationTags(item, location)
     return { attempted: true, updated: true }
   }
 
@@ -232,6 +244,7 @@ export default function geocodingPlugin(options: GeocodingPluginOptions = {}): B
           provider: normalizedOptions.provider,
           mapboxToken: normalizedOptions.mapboxToken,
           nominatimBaseUrl: normalizedOptions.nominatimBaseUrl,
+          userAgent: normalizedOptions.userAgent,
           cachePrecision: normalizedOptions.cachePrecision ?? DEFAULT_CACHE_PRECISION,
           language: normalizedOptions.language,
         }
