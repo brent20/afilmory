@@ -457,5 +457,15 @@
   "video.conversion.webcodecs.not.supported": "WebCodecs is not supported in this browser",
   "video.format.mov.not.supported": "Browser does not support MOV format, conversion required",
   "video.format.mov.supported": "Browser natively supports MOV format, skipping conversion",
-  "video.motion-photo.extracting": "Extracting embedded video..."
+  "video.motion-photo.extracting": "Extracting embedded video...",
+  "gallery.metrics.title": "Photography Analytics",
+  "gallery.metrics.description": "A technical breakdown of Brent's photographic habits and equipment usage.",
+  "gallery.metrics.exposure": "Exposure Patterns",
+  "gallery.metrics.aperture": "Aperture Distribution",
+  "gallery.metrics.focal": "Focal Lengths",
+  "gallery.metrics.iso": "ISO Sensitivity",
+  "gallery.metrics.time": "Time of Day",
+  "gallery.metrics.geo": "Geographic Reach",
+  "gallery.metrics.timeline": "Shooting Timeline",
+  "gallery.metrics.no_photos": "No photos available to analyze"
 }
