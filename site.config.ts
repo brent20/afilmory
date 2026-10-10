@@ -80,6 +80,10 @@ interface Author {
 interface Social {
   twitter?: string
   github?: string
+  /** Full URL for the "Contact" header link. Falls back to author.url when empty. */
+  contact?: string
+  /** Full URL for the "Usage info" header link. Falls back to author.url when empty. */
+  usage?: string
 }
 
 interface ViewerConfig {
