@@ -2,7 +2,6 @@ import type { ViewportScaleInput } from './double-click-zoom'
 import {
   computeFillScale,
   computeFitScale,
-  resolveDoubleClickZoomStages,
   resolveNextDoubleClickScale,
 } from './double-click-zoom'
 import type { LoadingState } from './enum'
@@ -21,7 +20,7 @@ export abstract class ImageViewerEngineBase {
     this.onLoadingStateChange = config.onLoadingStateChange
     this.boundHandleMouseDown = e => this.handleMouseDown(e)
     this.boundHandleMouseMove = e => this.handleMouseMove(e)
-    this.boundHandleMouseUp = () => this.handleMouseUp()
+    this.boundHandleMouseUp = e => this.handleMouseUp(e)
     this.boundHandleWheel = e => this.handleWheel(e)
     this.boundHandleDoubleClick = e => this.handleDoubleClick(e)
     this.boundHandleTouchStart = e => this.handleTouchStart(e)
@@ -124,6 +123,33 @@ export abstract class ImageViewerEngineBase {
 
   protected lastTouchY = 0
 
+  /**
+   * Single click / tap detection (click-to-zoom).
+   * A press only counts as a click when it is short and barely moves, so dragging to pan
+   * and pinching never trigger a zoom.
+   */
+  protected clickCandidate = false
+
+  protected clickStartX = 0
+
+  protected clickStartY = 0
+
+  protected clickStartTime = 0
+
+  protected tapCandidate = false
+
+  protected tapStartX = 0
+
+  protected tapStartY = 0
+
+  protected tapStartTime = 0
+
+  protected static readonly CLICK_MAX_DURATION_MS = 300
+
+  protected static readonly CLICK_MAX_MOVE_PX = 6
+
+  protected static readonly TAP_MAX_MOVE_PX = 12
+
   protected isAnimating = false
 
   protected animationStartTime = 0
@@ -160,7 +186,7 @@ export abstract class ImageViewerEngineBase {
 
   protected boundHandleMouseMove: (e: MouseEvent) => void
 
-  protected boundHandleMouseUp: () => void
+  protected boundHandleMouseUp: (e: MouseEvent) => void
 
   protected boundHandleWheel: (e: WheelEvent) => void
 
@@ -488,6 +514,13 @@ export abstract class ImageViewerEngineBase {
     if (this.isAnimating) {
       this.isAnimating = false
     }
+
+    // Remember where/when the press started so mouseup can tell a click from a drag
+    this.clickCandidate = true
+    this.clickStartX = e.clientX
+    this.clickStartY = e.clientY
+    this.clickStartTime = Date.now()
+
     if (this.config.panning.disabled) {
       return
     }
@@ -515,8 +548,25 @@ export abstract class ImageViewerEngineBase {
     this.render()
   }
 
-  protected handleMouseUp() {
+  protected handleMouseUp(e?: MouseEvent) {
     this.isDragging = false
+
+    const wasClickCandidate = this.clickCandidate
+    this.clickCandidate = false
+
+    if (!e || !wasClickCandidate || e.button !== 0 || this.config.doubleClick.disabled) {
+      return
+    }
+
+    const moved = Math.hypot(e.clientX - this.clickStartX, e.clientY - this.clickStartY)
+    const elapsed = Date.now() - this.clickStartTime
+    if (moved > ImageViewerEngineBase.CLICK_MAX_MOVE_PX || elapsed > ImageViewerEngineBase.CLICK_MAX_DURATION_MS) {
+      return
+    }
+
+    // A single click zooms (previously this required a double click)
+    const rect = this.canvas.getBoundingClientRect()
+    this.performDoubleClickAction(e.clientX - rect.left, e.clientY - rect.top)
   }
 
   protected handleWheel(e: WheelEvent) {
@@ -538,23 +588,9 @@ export abstract class ImageViewerEngineBase {
   }
 
   protected handleDoubleClick(e: MouseEvent) {
+    // Zooming now happens on a single click (see handleMouseUp), so the native
+    // double-click event only needs to be swallowed to avoid text/image selection.
     e.preventDefault()
-    if (this.config.doubleClick.disabled) {
-      return
-    }
-
-    const now = Date.now()
-    if (now - this.lastDoubleClickTime < 300) {
-      return
-    }
-
-    this.lastDoubleClickTime = now
-
-    const rect = this.canvas.getBoundingClientRect()
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
-
-    this.performDoubleClickAction(mouseX, mouseY)
   }
 
   protected handleTouchStart(e: TouchEvent) {
@@ -574,29 +610,22 @@ export abstract class ImageViewerEngineBase {
 
     if (e.touches.length === 1) {
       const touch = e.touches[0]
-      const now = Date.now()
-      if (
-        !this.config.doubleClick.disabled
-        && now - this.lastTouchTime < 300
-        && Math.abs(touch.clientX - this.lastTouchX) < 50
-        && Math.abs(touch.clientY - this.lastTouchY) < 50
-      ) {
-        this.handleTouchDoubleTap(touch.clientX, touch.clientY)
-        this.lastTouchTime = 0
-        return
-      }
+
+      // Remember the start of this touch so touchend can tell a tap from a drag
+      this.tapCandidate = true
+      this.tapStartX = touch.clientX
+      this.tapStartY = touch.clientY
+      this.tapStartTime = Date.now()
 
       if (!this.config.panning.disabled) {
         this.isDragging = true
         this.lastMouseX = touch.clientX
         this.lastMouseY = touch.clientY
       }
-
-      this.lastTouchTime = now
-      this.lastTouchX = touch.clientX
-      this.lastTouchY = touch.clientY
     }
     else if (e.touches.length === 2 && !this.config.pinch.disabled) {
+      // A second finger means pinch, never a tap
+      this.tapCandidate = false
       this.isDragging = false
       const touch1 = e.touches[0]
       const touch2 = e.touches[1]
@@ -640,21 +669,31 @@ export abstract class ImageViewerEngineBase {
     }
   }
 
-  protected handleTouchEnd(_e: TouchEvent) {
+  protected handleTouchEnd(e: TouchEvent) {
+    const wasTapCandidate = this.tapCandidate
+    this.tapCandidate = false
     this.isDragging = false
     this.lastTouchDistance = 0
-  }
 
-  protected handleTouchDoubleTap(clientX: number, clientY: number) {
-    if (this.config.doubleClick.disabled) {
+    // Ignore cancelled touches, and gestures that still have a finger down (end of a pinch)
+    if (!wasTapCandidate || e.type !== 'touchend' || e.touches.length > 0 || this.config.doubleClick.disabled) {
       return
     }
 
-    const rect = this.canvas.getBoundingClientRect()
-    const touchX = clientX - rect.left
-    const touchY = clientY - rect.top
+    const touch = e.changedTouches[0]
+    if (!touch) {
+      return
+    }
 
-    this.performDoubleClickAction(touchX, touchY)
+    const moved = Math.hypot(touch.clientX - this.tapStartX, touch.clientY - this.tapStartY)
+    const elapsed = Date.now() - this.tapStartTime
+    if (moved > ImageViewerEngineBase.TAP_MAX_MOVE_PX || elapsed > ImageViewerEngineBase.CLICK_MAX_DURATION_MS) {
+      return
+    }
+
+    // A single tap zooms (previously this required a double tap)
+    const rect = this.canvas.getBoundingClientRect()
+    this.performDoubleClickAction(touch.clientX - rect.left, touch.clientY - rect.top)
   }
 
   protected performDoubleClickAction(x: number, y: number) {
@@ -671,11 +710,10 @@ export abstract class ImageViewerEngineBase {
     const effectiveMaxScale = Math.max(userMaxScale, 1)
     const originalSizeScale = Math.max(absoluteMinScale, Math.min(effectiveMaxScale, 1))
 
-    const stages = resolveDoubleClickZoomStages({
-      fitScale: fitToScreenScale,
-      fillScale: this.getFillToScreenScale(),
-      originalScale: originalSizeScale,
-    })
+    // Simple two-state toggle: fit to screen <-> 100% (original pixels).
+    // If the two are effectively the same size there is nothing to toggle to.
+    const isSameAsFit = Math.abs(originalSizeScale / fitToScreenScale - 1) < 0.01
+    const stages = isSameAsFit ? [fitToScreenScale] : [fitToScreenScale, originalSizeScale].sort((a, b) => a - b)
     const targetScale = resolveNextDoubleClickScale(this.scale, stages)
 
     const zoomX = (x - this.canvasWidth / 2 - this.translateX) / this.scale
