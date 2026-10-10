@@ -21,7 +21,6 @@ import { authApi, canAccessDashboard } from '~/lib/api/auth'
 
 import { UserAvatar } from '../../social/comments/UserAvatar'
 import { ViewPanel } from '../panels/ViewPanel'
-import { LanguageSwitcher } from './LanguageSwitcher'
 import { ActionIconButton, resolveSocialUrl } from './utils'
 
 export const PageHeaderRight = () => {
@@ -80,8 +79,6 @@ export const PageHeaderRight = () => {
           </DesktopViewButton>
         )}
 
-        <LanguageSwitcher />
-
         {isMobile && <MoreActionMenu />}
       </div>
 
@@ -108,6 +105,8 @@ const MoreActionMenu = () => {
       ? resolveSocialUrl(siteConfig.social.twitter, { baseUrl: 'https://twitter.com/', stripAt: true })
       : undefined
   const hasRss = true
+  const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
+  const usageUrl = siteConfig.social?.usage?.trim() || siteConfig.author.url
 
   return (
     <DropdownMenu>
@@ -143,7 +142,7 @@ const MoreActionMenu = () => {
           {settings.viewMode === 'list' && <i className="i-mingcute-check-line text-base" />}
         </DropdownMenuItem>
 
-        {(githubUrl || twitterUrl || hasRss) && <DropdownMenuSeparator />}
+        <DropdownMenuSeparator />
 
         {githubUrl && (
           <DropdownMenuItem asChild>
@@ -166,6 +165,22 @@ const MoreActionMenu = () => {
             <a href="/feed.xml" target="_blank" rel="noreferrer" className="flex items-center gap-2">
               <i className="i-mingcute-rss-2-fill text-base" />
               RSS
+            </a>
+          </DropdownMenuItem>
+        )}
+        {contactUrl && (
+          <DropdownMenuItem asChild>
+            <a href={contactUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+              <i className="i-mingcute-mail-fill text-base" />
+              Contact
+            </a>
+          </DropdownMenuItem>
+        )}
+        {usageUrl && (
+          <DropdownMenuItem asChild>
+            <a href={usageUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+              <i className="i-mingcute-information-fill text-base" />
+              Usage info
             </a>
           </DropdownMenuItem>
         )}
