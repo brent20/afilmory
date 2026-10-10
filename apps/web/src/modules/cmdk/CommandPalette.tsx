@@ -1,7 +1,7 @@
 import { photoLoader } from '@afilmory/data'
 import { Modal } from '@afilmory/ui'
 import { clsxm, Spring } from '@afilmory/utils'
-import { useAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import { AnimatePresence, m } from 'motion/react'
 import * as React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -395,7 +395,7 @@ export const CommandPalette = ({ isOpen, onClose }: CommandPaletteProps) => {
         }
       })
 
-      return Array.from(uniqueFilters.values()).slice(0, 30)
+      return Array.from(uniqueFilters.values())
     }
 
     return commands
@@ -403,7 +403,6 @@ export const CommandPalette = ({ isOpen, onClose }: CommandPaletteProps) => {
         const searchText = `${cmd.title} ${cmd.subtitle || ''} ${cmd.keywords?.join(' ') || ''}`
         return fuzzyMatch(searchText, query)
       })
-      .slice(0, 20)
   }, [commands, query])
 
   // Keyboard navigation
@@ -512,7 +511,7 @@ export const CommandPalette = ({ isOpen, onClose }: CommandPaletteProps) => {
                 </button>
               </div>
 
-              <div className="border-border bg-fill-quaternary text-text-secondary relative flex items-center justify-between gap-3 border-b px-3 py-1.5 text-xs">
+              <div className="border-border bg-fill-quaternary relative flex items-center justify-between gap-3 border-b px-3 py-1.5 text-xs">
                 <div className="flex items-center gap-2">
                   <i className="i-mingcute-filter-3-line text-sm" />
                   <span>{t('action.tag.match.label')}</span>
