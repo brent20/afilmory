@@ -59,6 +59,9 @@ export const MasonryPhotoItem = memo(({ data, width }: { data: PhotoManifest; wi
   // 使用共享的 EXIF 格式化函数
   const exifData = useMemo(() => formatExifData(data.exif ?? null), [data.exif])
 
+  // Camera model only (e.g. "ILCE-7M3"), falling back to "Make Model" if Model is missing
+  const cameraModel = data.exif?.Model?.trim() || exifData?.camera || null
+
   // 检查是否有视频内容（Live Photo 或 Motion Photo）
   const hasVideo = data.video !== undefined
 
@@ -262,66 +265,63 @@ export const MasonryPhotoItem = memo(({ data, width }: { data: PhotoManifest; wi
           {/* 内容层 - 独立的层以支持 backdrop-filter */}
           <div className="absolute inset-x-0 bottom-0 p-4 pb-0 text-white">
             {/* 基本信息和标签 section */}
-            <div className="mb-3 **:duration-300">
-              <h3 className="mb-2 truncate text-sm font-medium opacity-0 group-hover:opacity-100">{data.title}</h3>
-              {data.description && (
-                <p className="mb-2 line-clamp-2 text-sm text-white/80 opacity-0 group-hover:opacity-100">
-                  {data.description}
-                </p>
-              )}
+            {(data.description || (data.tags && data.tags.length > 0)) && (
+              <div className="mb-3 **:duration-300">
+                {data.description && (
+                  <p className="mb-2 line-clamp-2 text-sm text-white/80 opacity-0 group-hover:opacity-100">
+                    {data.description}
+                  </p>
+                )}
 
-              {/* 基本信息 */}
-              <div className="mb-2 flex flex-wrap gap-2 text-xs text-white/80 opacity-0 group-hover:opacity-100">
-                <span>{data.format}</span>
-                <span>•</span>
-                <span>
-                  {data.width} × {data.height}
-                </span>
-                <span>•</span>
-                <span>{(data.size / 1024 / 1024).toFixed(1)}MB</span>
+                {/* Tags */}
+                {data.tags && data.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/90 opacity-0 backdrop-blur-sm group-hover:opacity-100"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* Tags */}
-              {data.tags && data.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {data.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full bg-white/20 px-2 py-0.5 text-xs text-white/90 opacity-0 backdrop-blur-sm group-hover:opacity-100"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
 
             {/* EXIF 信息网格 */}
-            {calculatedHeight >= 200 && exifData && (
-              <div className="grid grid-cols-2 gap-2 pb-4 text-xs">
+            {calculatedHeight >= 160 && exifData && (
+              <div className="flex flex-wrap gap-1.5 pb-3 text-[11px]">
+                {cameraModel && (
+                  <div className="flex w-full min-w-0 items-center gap-1 rounded-md bg-white/10 px-1.5 py-0.5 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                    <i className="i-mingcute-camera-line shrink-0 text-white/70" />
+                    <span className="truncate text-white/90">{cameraModel}</span>
+                  </div>
+                )}
+
                 {exifData.focalLength35mm && (
-                  <div className="flex items-center gap-1.5 rounded-md bg-white/10 px-2 py-1 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="flex items-center gap-1 rounded-md bg-white/10 px-1.5 py-0.5 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
                     <StreamlineImageAccessoriesLensesPhotosCameraShutterPicturePhotographyPicturesPhotoLens className="text-white/70" />
                     <span className="text-white/90">{exifData.focalLength35mm}mm</span>
                   </div>
                 )}
 
                 {exifData.aperture && (
-                  <div className="flex items-center gap-1.5 rounded-md bg-white/10 px-2 py-1 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="flex items-center gap-1 rounded-md bg-white/10 px-1.5 py-0.5 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
                     <TablerAperture className="text-white/70" />
                     <span className="text-white/90">{exifData.aperture}</span>
                   </div>
                 )}
 
                 {exifData.shutterSpeed && (
-                  <div className="flex items-center gap-1.5 rounded-md bg-white/10 px-2 py-1 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="flex items-center gap-1 rounded-md bg-white/10 px-1.5 py-0.5 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
                     <MaterialSymbolsShutterSpeed className="text-white/70" />
                     <span className="text-white/90">{exifData.shutterSpeed}</span>
                   </div>
                 )}
 
                 {exifData.iso && (
-                  <div className="flex items-center gap-1.5 rounded-md bg-white/10 px-2 py-1 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
+                  <div className="flex items-center gap-1 rounded-md bg-white/10 px-1.5 py-0.5 opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100">
                     <CarbonIsoOutline className="text-white/70" />
                     <span className="text-white/90">ISO {exifData.iso}</span>
                   </div>
