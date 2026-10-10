@@ -35,5 +35,10 @@
   ],
   "mapStyle": "builtin",
   "mapProjection": "mercator"
+  
  
+  },
+  "geocoding": {
+    "enable": true,
+    "provider": "nominatim"
   }
