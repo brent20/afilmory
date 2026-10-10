@@ -14,7 +14,6 @@
     "name": "Brent",
     "url": "https://brentsaltzman.com",
     "avatar": "/avatar.jpg"
-   
   },
   "social": {
     "github": "",
@@ -35,10 +34,13 @@
   ],
   "mapStyle": "builtin",
   "mapProjection": "mercator",
-  
- 
-  "geocoding": {
-    "enable": true,
-    "provider": "nominatim"
-  }
+  "plugins": [
+    {
+      "name": "afilmory:geocoding",
+      "options": {
+        "enable": true,
+        "provider": "nominatim"
+      }
+    }
+  ]
 }
