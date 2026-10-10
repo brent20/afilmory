@@ -304,7 +304,7 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                     {(currentPhoto.location.city || currentPhoto.location.country) && (
                       <Row
                         label={t('exif.gps.city')}
-                        value={[currentPhoto.location.city, currentPhoto.location.country].filter(Boolean).join(', ')}
+                        value={[currentPhoto.location.city, currentPhoto.location.state, currentPhoto.location.country].filter(Boolean).join(', ')}
                       />
                     )}
                     {currentPhoto.location.locationName && (
