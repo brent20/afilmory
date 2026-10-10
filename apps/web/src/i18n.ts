@@ -1,5 +1,4 @@
 import i18next from 'i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 import { atom } from 'jotai'
 import { initReactI18next } from 'react-i18next'
 
@@ -9,9 +8,10 @@ import { jotaiStore } from './lib/jotai'
 
 const i18n = i18next.createInstance()
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    // English only: no language detection, so browser/localStorage language never overrides this.
+    lng: 'en',
     fallbackLng: {
       default: ['en'],
     },
@@ -20,10 +20,6 @@ i18n
     resources,
     interpolation: {
       escapeValue: false,
-    },
-    detection: {
-      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage'],
     },
     returnNull: false,
   })
