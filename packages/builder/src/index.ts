@@ -13,6 +13,8 @@ export {
   processPhotoWithPipeline,
 } from './photo/image-pipeline.js'
 export type { PhotoProcessorOptions } from './photo/processor.js'
+export type { AiTaggingPluginOptions } from './plugins/ai-tagging.js'
+export { default as aiTaggingPlugin, DEFAULT_AI_TAG_VOCABULARY } from './plugins/ai-tagging.js'
 export type { GeocodingPluginOptions } from './plugins/geocoding.js'
 export { default as geocodingPlugin } from './plugins/geocoding.js'
 export type { GitHubRepoSyncPluginOptions } from './plugins/github-repo-sync.js'

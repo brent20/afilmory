@@ -1,6 +1,6 @@
 import os from 'node:os'
 
-import { defineBuilderConfig, githubRepoSyncPlugin } from '@afilmory/builder'
+import { aiTaggingPlugin, defineBuilderConfig, githubRepoSyncPlugin } from '@afilmory/builder'
 
 import { env } from './env.js'
 
@@ -61,6 +61,15 @@ export default defineBuilderConfig(() => ({
   },
   // plugins: [thumbnailStoragePlugin()],
   plugins: [
+    // Automatic photo tags via Cloudflare Workers AI (free tier). Turns on only when both
+    // CF_AI_ACCOUNT_ID and CF_AI_API_TOKEN are set in the build environment.
+    // Set CF_AI_MAX_PER_RUN=5 for a quick first test run.
+    aiTaggingPlugin({
+      enable: Boolean(process.env.CF_AI_ACCOUNT_ID && process.env.CF_AI_API_TOKEN),
+      accountId: process.env.CF_AI_ACCOUNT_ID,
+      apiToken: process.env.CF_AI_API_TOKEN,
+      maxPerRun: Number(process.env.CF_AI_MAX_PER_RUN) || 400,
+    }),
     githubRepoSyncPlugin({
       repo: {
         enable: false,
