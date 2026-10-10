@@ -60,11 +60,29 @@ export const PageHeaderRight = () => {
               title={t('action.map.explore')}
               onClick={() => navigate('/map')}
             />
-     <ActionIconButton
-        icon="i-mingcute-analytics-line"
-       title={t('gallery.metrics.title' as any) || 'Metrics'}
-       onClick={() => navigate('/metrics')}
-      />
+            <ActionIconButton
+              icon={
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-3.5 lg:size-4"
+                >
+                  <path d="M3 3v18h18" />
+                  <path d="M18 17V9a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v8" />
+                  <path d="M13 17v-4" />
+                  <path d="M17 17v-6" />
+                  <path d="M11 17v-2" />
+                </svg>
+              }
+              title={t('gallery.metrics.title' as any) || 'Metrics'}
+              onClick={() => navigate('/metrics')}
+            />
           </>
         )}
 
@@ -196,7 +214,6 @@ const MoreActionMenu = () => {
   )
 }
 
-// 紧凑版本的桌面端视图按钮
 const DesktopViewButton = ({
   icon,
   title,
@@ -230,7 +247,6 @@ const DesktopViewButton = ({
   )
 }
 
-// 紧凑版本的移动端视图按钮
 const MobileViewButton = ({
   icon,
   title,
@@ -272,7 +288,6 @@ const MobileViewButton = ({
   )
 }
 
-// 登录按钮
 const LoginButton = () => {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
@@ -321,7 +336,6 @@ const LoginButton = () => {
   )
 }
 
-// 登录平台图标
 const LoginPlatformIcon = ({ provider }: { provider: string }) => {
   switch (provider) {
     case 'apple': {
@@ -358,7 +372,6 @@ const LoginPlatformIcon = ({ provider }: { provider: string }) => {
   }
 }
 
-// 用户菜单按钮
 const UserMenuButton = ({
   user,
 }: {
