@@ -23,6 +23,10 @@ import { UserAvatar } from '../../social/comments/UserAvatar'
 import { ViewPanel } from '../panels/ViewPanel'
 import { ActionIconButton, resolveSocialUrl } from './utils'
 
+// The Metrics page isn't ready yet, so its header button is hidden.
+// Change this to `true` to show the button again.
+const SHOW_METRICS_BUTTON = false
+
 export const PageHeaderRight = () => {
   const { t } = useTranslation()
   const isMobile = useMobile()
@@ -60,11 +64,13 @@ export const PageHeaderRight = () => {
               title={t('action.map.explore')}
               onClick={() => navigate('/map')}
             />
-            <ActionIconButton
-              icon={<BarChart3 className="size-3.5 lg:size-4" />}
-              title={t('gallery.metrics.title' as any) || 'Metrics'}
-              onClick={() => navigate('/metrics')}
-            />
+            {SHOW_METRICS_BUTTON && (
+              <ActionIconButton
+                icon={<BarChart3 className="size-3.5 lg:size-4" />}
+                title={t('gallery.metrics.title' as any) || 'Metrics'}
+                onClick={() => navigate('/metrics')}
+              />
+            )}
           </>
         )}
 
