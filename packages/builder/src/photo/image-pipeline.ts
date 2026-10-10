@@ -175,7 +175,7 @@ export async function executePhotoProcessingPipeline(
     const { sharpInstance, imageBuffer, metadata } = processedData
     const contentDigest = crypto.createHash('sha256').update(imageBuffer).digest('hex')
 
-    // 3. 处理缩略图和 blurhash
+    // 3. 处理缩略图 and blurhash
     const thumbnailResult = await processThumbnailAndBlurhash(imageBuffer, photoId, existingItem, options)
 
     context.pluginData[THUMBNAIL_PLUGIN_DATA_KEY] = {
@@ -227,6 +227,10 @@ export async function executePhotoProcessingPipeline(
     // 10. 构建照片清单项
     const aspectRatio = metadata.width / metadata.height
     const extension = path.extname(photoKey).slice(1).toUpperCase()
+
+    const copyrightYear = exifData?.DateTimeOriginal ? new Date(exifData.DateTimeOriginal).getFullYear() : new Date().getFullYear()
+    const standardizedCopyright = `© ${copyrightYear} Brent Saltzman`
+
     const photoItem: PhotoManifestItem = {
       id: photoId,
       format: extension || 'UNKNOWN',
@@ -244,7 +248,7 @@ export async function executePhotoProcessingPipeline(
       lastModified: obj.LastModified?.toISOString() || new Date().toISOString(),
       size: obj.Size || 0,
       digest: contentDigest,
-      exif: exifData,
+      exif: exifData ? { ...exifData, Copyright: standardizedCopyright } : null,
       keywords: xmpKeywords,
       regions: xmpRegions,
       toneAnalysis,
