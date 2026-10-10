@@ -192,7 +192,7 @@ async function resolveLocationForItem(
     if (cached) {
       item.location = cached
       // Add to tags
-      const locTags = [cached.country, cached.state, cached.city].filter(Boolean)
+      const locTags = [cached.country, cached.state, cached.city].filter(Boolean) as string[]
       item.tags = [...new Set([...(item.tags || []), ...locTags])]
       return { attempted: true, updated: true }
     }
@@ -208,7 +208,7 @@ async function resolveLocationForItem(
   if (location) {
     item.location = location
     // Add to tags
-    const locTags = [location.country, location.state, location.city].filter(Boolean)
+    const locTags = [location.country, location.state, location.city].filter(Boolean) as string[]
     item.tags = [...new Set([...(item.tags || []), ...locTags])]
     return { attempted: true, updated: true }
   }
