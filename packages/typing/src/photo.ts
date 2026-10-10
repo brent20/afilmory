@@ -9,6 +9,8 @@ export interface LocationInfo {
   country?: string
   state?: string
   city?: string
+  /** A single clean city/town name (e.g. "Omaha"), used for tags. `city` may combine two levels. */
+  cityName?: string
   locationName?: string
 }
 
