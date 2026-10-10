@@ -42,6 +42,8 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
       ? resolveSocialUrl(siteConfig.social.twitter, { baseUrl: 'https://twitter.com/', stripAt: true })
       : undefined
   const hasRss = true
+  const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
+  const usageUrl = siteConfig.social?.usage?.trim() || siteConfig.author.url
 
   return (
     <div
@@ -77,7 +79,7 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
         <h2 className="mt-1 mb-1 text-2xl font-semibold text-gray-900 dark:text-white">{siteConfig.name}</h2>
 
         {/* Social media links */}
-        {(githubUrl || twitterUrl || hasRss) && (
+        {(githubUrl || twitterUrl || hasRss || contactUrl || usageUrl) && (
           <div className="mt-1 mb-3 flex items-center justify-center gap-3">
             {githubUrl && (
               <a
@@ -109,6 +111,28 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
                 title="RSS"
               >
                 <i className="i-mingcute-rss-2-fill text-sm" />
+              </a>
+            )}
+            {contactUrl && (
+              <a
+                href={contactUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
+                title="Contact"
+              >
+                <i className="i-mingcute-mail-fill text-sm" />
+              </a>
+            )}
+            {usageUrl && (
+              <a
+                href={usageUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
+                title="Usage info"
+              >
+                <i className="i-mingcute-information-fill text-sm" />
               </a>
             )}
           </div>
