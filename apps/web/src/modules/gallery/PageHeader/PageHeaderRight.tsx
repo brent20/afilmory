@@ -62,7 +62,7 @@ export const PageHeaderRight = () => {
             />
             <ActionIconButton
               icon="i-mingcute-chart-line"
-              title={t('gallery.metrics.title') || 'Metrics'}
+              title={t('gallery.metrics.title' as any) || 'Metrics'}
               onClick={() => navigate('/metrics')}
             />
           </>
