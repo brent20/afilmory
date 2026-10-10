@@ -7,7 +7,7 @@ import {
 } from '@afilmory/ui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { LogIn, LogOut, User } from 'lucide-react'
+import { LogIn, LogOut, User, BarChart3 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -61,25 +61,7 @@ export const PageHeaderRight = () => {
               onClick={() => navigate('/map')}
             />
             <ActionIconButton
-              icon={
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="size-3.5 lg:size-4"
-                >
-                  <path d="M3 3v18h18" />
-                  <path d="M18 17V9a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v8" />
-                  <path d="M13 17v-4" />
-                  <path d="M17 17v-6" />
-                  <path d="M11 17v-2" />
-                </svg>
-              }
+              icon={<BarChart3 className="size-3.5 lg:size-4" />}
               title={t('gallery.metrics.title' as any) || 'Metrics'}
               onClick={() => navigate('/metrics')}
             />
