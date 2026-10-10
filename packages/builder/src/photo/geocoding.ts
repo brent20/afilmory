@@ -219,6 +219,8 @@ export class MapboxGeocodingProvider implements GeocodingProvider {
 
         // 提取州/省信息
         const state = context.region?.name
+        const cityName: string | undefined =
+          context.place?.name || context.locality?.name || context.district?.name || undefined
 
         // 提取城市信息 - 拼接多个层级（从小到大）
         const cityParts = [
@@ -244,6 +246,7 @@ export class MapboxGeocodingProvider implements GeocodingProvider {
           country,
           state,
           city,
+          cityName,
           locationName,
         }
       } catch (error) {
@@ -275,16 +278,17 @@ export class MapboxGeocodingProvider implements GeocodingProvider {
 export class NominatimGeocodingProvider implements GeocodingProvider {
   private readonly baseUrl: string
   private readonly language: string | null
-  private readonly userAgent = 'afilmory/1.0'
+  private readonly userAgent: string
   private readonly rateLimitMs = 1000 // Nominatim 要求至少1秒间隔
   private readonly rateLimiter: SequentialRateLimiter
   private readonly interprocessKey: string
   private readonly maxRetries = 3
   private readonly retryBaseDelayMs = 1000
 
-  constructor(baseUrl?: string, language?: string | null) {
+  constructor(baseUrl?: string, language?: string | null, userAgent?: string) {
     this.baseUrl = baseUrl || 'https://nominatim.openstreetmap.org'
     this.language = language ?? null
+    this.userAgent = userAgent?.trim() || 'afilmory/1.0'
     this.rateLimiter = getGlobalRateLimiter(`nominatim:${this.baseUrl}`, this.rateLimitMs)
     this.interprocessKey = `nominatim:${this.baseUrl}`
   }
@@ -330,7 +334,9 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
         const country = address.country || address.country_code?.toUpperCase()
 
         // 提取州/省信息
-        const state = address.state
+        const state = address.state || address.province || address.region || undefined
+        const cityName: string | undefined =
+          address.city || address.town || address.village || address.municipality || address.hamlet || undefined
 
         // 提取城市信息 - 拼接多个层级（从小到大）
         const cityParts = [
@@ -360,6 +366,7 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
           country,
           state,
           city,
+          cityName,
           locationName,
         }
       } catch (error) {
@@ -396,6 +403,7 @@ export function createGeocodingProvider(
   mapboxToken?: string,
   nominatimBaseUrl?: string,
   language?: string | null,
+  userAgent?: string | null,
 ): GeocodingProvider | null {
   // 如果指定了 Mapbox 或自动模式且有 token，使用 Mapbox
   if ((provider === 'mapbox' || provider === 'auto') && mapboxToken) {
@@ -404,7 +412,7 @@ export function createGeocodingProvider(
 
   // 使用 Nominatim
   if (provider === 'nominatim' || provider === 'auto') {
-    return new NominatimGeocodingProvider(nominatimBaseUrl, language)
+    return new NominatimGeocodingProvider(nominatimBaseUrl, language, userAgent ?? undefined)
   }
 
   return null
