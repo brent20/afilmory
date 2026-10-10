@@ -42,7 +42,7 @@ export const ActionIconButton = ({
   badge,
   href,
 }: {
-  icon: string
+  icon: string | React.ReactNode
   title: string
   onClick?: () => void
   badge?: number
@@ -53,7 +53,11 @@ export const ActionIconButton = ({
 
   const content = (
     <>
-      <i className={`${icon} text-sm lg:text-base`} />
+      {typeof icon === 'string' ? (
+        <i className={`${icon} text-sm lg:text-base`} />
+      ) : (
+        icon
+      )}
       {badge !== undefined && badge > 0 && (
         <span className="absolute -top-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-blue-500 text-[9px] font-medium text-white lg:size-4">
           {badge}
