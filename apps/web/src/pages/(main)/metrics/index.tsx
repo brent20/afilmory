@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { m } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { usePhotos } from '~/hooks/usePhotoViewer'
-import { computePhotoMetrics, type PhotoMetrics } from '~/lib/metrics'
+import { computePhotoMetrics, type PhotoMetrics } from '../../../lib/metrics'
 
 const MetricCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-white/[0.08]">
@@ -31,7 +31,7 @@ const BarRow = ({ label, value, max, color = 'bg-accent' }: { label: string; val
   )
 }
 
-export default function MetricsPage() {
+export const Component = () => {
   const { t } = useTranslation()
   const photos = usePhotos()
 
@@ -61,7 +61,6 @@ export default function MetricsPage() {
       </header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {/* Gear: Cameras */}
         <MetricCard title={t('exif.camera' as any) || 'Cameras'}>
           <div className="space-y-4">
             {metrics.cameras.slice(0, 5).map(c => (
@@ -70,7 +69,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Gear: Lenses */}
         <MetricCard title={t('exif.lens' as any) || 'Lenses'}>
           <div className="space-y-4">
             {metrics.lenses.slice(0, 5).map(l => (
@@ -79,7 +77,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Exposure Stats */}
         <MetricCard title={t('gallery.metrics.exposure' as any) || 'Exposure'}>
           <div className="grid grid-cols-1 gap-6">
             <div className="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-center">
@@ -99,7 +96,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Tech: Aperture */}
         <MetricCard title={t('gallery.metrics.aperture' as any) || 'Aperture'}>
           <div className="space-y-4">
             {metrics.apertures.slice(0, 5).map(a => (
@@ -108,7 +104,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Tech: Focal Length */}
         <MetricCard title={t('gallery.metrics.focal' as any) || 'Focal Length'}>
           <div className="space-y-4">
             {metrics.focalLengths.slice(0, 5).map(f => (
@@ -117,7 +112,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Tech: ISO */}
         <MetricCard title={t('gallery.metrics.iso' as any) || 'ISO'}>
           <div className="space-y-4">
             {metrics.isos.slice(0, 5).map(i => (
@@ -126,7 +120,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Time of Day */}
         <MetricCard title={t('gallery.metrics.time' as any) || 'Time of Day'}>
           <div className="space-y-4">
             {metrics.timeOfDay.map(t => (
@@ -135,7 +128,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Geographic Reach */}
         <MetricCard title={t('gallery.metrics.geo' as any) || 'Geographic Reach'}>
           <div className="space-y-4">
             {metrics.geoReach.slice(0, 5).map(g => (
@@ -144,7 +136,6 @@ export default function MetricsPage() {
           </div>
         </MetricCard>
 
-        {/* Timeline Summary */}
         <MetricCard title={t('gallery.metrics.timeline' as any) || 'Timeline'}>
           <div className="flex flex-wrap gap-2 overflow-y-auto max-h-64 p-1">
             {metrics.timeline.map(item => (
