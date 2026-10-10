@@ -127,9 +127,19 @@ export async function loadPlugins(
       continue
     }
 
-    if (typeof entry === 'string') {
-      const descriptor = normalizeDescriptor(entry)
+    let specifier = typeof entry === 'string' ? entry : entry.specifier
 
+    // Resolve built-in afilmory plugins
+    if (typeof specifier === 'string' && specifier.startsWith('afilmory:')) {
+      const pluginName = specifier.replace('afilmory:', '')
+      specifier = path.join(baseDir, 'src/plugins', `${pluginName}.js`)
+    }
+
+    if (typeof entry === 'string' || (typeof entry === 'object' && 'specifier' in entry)) {
+      const descriptor = typeof entry === 'string' ? { specifier: specifier } : entry
+      if (typeof descriptor.specifier === 'string') {
+        descriptor.specifier = specifier
+      }
       const { resolvedPath } = resolveSpecifier(descriptor.specifier, baseDir)
 
       const mod = await importModule(resolvedPath)
