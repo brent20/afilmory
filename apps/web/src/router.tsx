@@ -12,8 +12,8 @@ export const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
+      { path: 'metrics', element: <MetricsPage /> },
       ...routes, 
-      { path: 'metrics', element: <MetricsPage /> }
     ],
     errorElement: <ErrorElement />,
     hydrateFallbackElement: <AppSkeleton />,
