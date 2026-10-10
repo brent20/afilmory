@@ -19,6 +19,10 @@ export const Component = () => {
 
   const isMobile = useMobile()
   const photos = usePhotos()
+  const location = useLocation()
+
+  // Only show the main gallery root on the home page or map page
+  const isGalleryRoute = location.pathname === '/' || location.pathname === '/map'
 
   return (
     <>
@@ -37,14 +41,16 @@ export const Component = () => {
           />
         )}
 
-        {isMobile ? (
-          <ScrollElementContext value={document.body}>
-            <PhotosRoot />
-          </ScrollElementContext>
-        ) : (
-          <ScrollArea rootClassName="h-svh w-full" viewportClassName="size-full" scrollbarClassName="mt-12">
-            <PhotosRoot />
-          </ScrollArea>
+        {isGalleryRoute && (
+          isMobile ? (
+            <ScrollElementContext value={document.body}>
+              <PhotosRoot />
+            </ScrollElementContext>
+          ) : (
+            <ScrollArea rootClassName="h-svh w-full" viewportClassName="size-full" scrollbarClassName="mt-12">
+              <PhotosRoot />
+            </ScrollArea>
+          )
         )}
 
         <Outlet />
