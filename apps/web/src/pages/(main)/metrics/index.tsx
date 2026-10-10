@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { m } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { usePhotos } from '~/hooks/usePhotoViewer'
-import { computePhotoMetrics, type PhotoMetrics } from '../../../lib/metrics'
+import { computePhotoMetrics, type PhotoMetrics } from '~/lib/metrics'
 
 const MetricCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all duration-300 hover:border-white/20 hover:bg-white/[0.08]">
