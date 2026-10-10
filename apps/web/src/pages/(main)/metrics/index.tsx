@@ -1,6 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, startTransition } from 'react'
 import { m } from 'motion/react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
+import { GlassButton } from '@afilmory/ui'
 import { usePhotos } from '~/hooks/usePhotoViewer'
 import { computePhotoMetrics, type PhotoMetrics } from '../../../lib/metrics'
 
@@ -33,7 +35,14 @@ const BarRow = ({ label, value, max, color = 'bg-accent' }: { label: string; val
 
 export const Component = () => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const photos = usePhotos()
+
+  const handleBack = () => {
+    startTransition(() => {
+      navigate('/')
+    })
+  }
 
   const metrics = useMemo(() => computePhotoMetrics(photos), [photos])
 
@@ -51,7 +60,16 @@ export const Component = () => {
   const maxTimeCount = Math.max(...metrics.timeOfDay.map(t => t.count), 1)
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-24 md:px-8">
+    <div className="relative mx-auto max-w-7xl px-6 py-24 md:px-8">
+      <GlassButton
+        className="absolute top-4 left-4 z-50"
+        onClick={handleBack}
+        title={t('explory.back.to.gallery' as any) || 'Back to gallery'}
+        aria-label={t('explory.back.to.gallery' as any) || 'Back to gallery'}
+      >
+        <i className="i-mingcute-arrow-left-line text-base text-white" aria-hidden="true" />
+      </GlassButton>
+
       <header className="mb-16 text-center">
         <p className="font-mono text-xs tracking-widest uppercase text-accent">Analytics</p>
         <h1 className="mt-3 font-serif text-4xl md:text-6xl text-white">{t('gallery.metrics.title' as any) || 'Photography Metrics'}</h1>
