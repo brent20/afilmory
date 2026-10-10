@@ -90,9 +90,9 @@ export const PhotoMarkerPin = ({ marker, isSelected = false, onClick, onClose }:
             <PhotoMarkerCardContent marker={marker} />
           </HoverCardContent>
         )}
-      </HoverCard>
 
-      {cardBehavior.renderAnchoredCard && <AnchoredPhotoMarkerCard marker={marker} onClose={handleClose} />}
+        {cardBehavior.renderAnchoredCard && <AnchoredPhotoMarkerCard marker={marker} onClose={handleClose} />}
+      </HoverCard>
     </Marker>
   )
 }
@@ -167,7 +167,7 @@ const PhotoMarkerCardContent = ({
           <div className="text-text-secondary flex items-center gap-2 text-xs">
             <i className="i-mingcute-calendar-line text-sm" />
             <span>
-              {new Date(marker.photo.exif.DateTimeOriginal).toLocaleDateString('zh-CN', {
+              {new Date(marker.photo.exif.DateTimeOriginal).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
