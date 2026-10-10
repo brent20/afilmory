@@ -40,3 +40,12 @@ body {
 /* 
 @source inline('i-simple-icons-github');
 @source inline('i-simple-icons-google'); */
+
+img,
+picture,
+canvas,
+video {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
