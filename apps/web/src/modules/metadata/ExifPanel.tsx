@@ -11,6 +11,7 @@ import { Fragment, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MiniMap } from './MiniMap'
 import { isExiftoolLoadedAtom } from '~/atoms/app'
+import { siteConfig } from '~/config'
 import { useMobile } from '~/hooks/useMobile'
 import {
   CarbonIsoOutline,
@@ -25,6 +26,22 @@ import { formatExifData, Row } from './formatExifData'
 import { HistogramChart } from './HistogramChart'
 import { PhotoRegionsSection } from './PhotoRegionsSection'
 import { RawExifViewer } from './RawExifViewer'
+
+/** Same layout as `Row`, but the value is a link. */
+const LinkRow: FC<{ label: string, value: string, href: string, title?: string }> = ({ label, value, href, title }) => (
+  <div className="flex justify-between gap-4 text-sm">
+    <span className="text-text-secondary shrink-0">{label}</span>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={title}
+      className="text-text hover:text-accent min-w-0 text-right underline-offset-2 transition-colors hover:underline"
+    >
+      {value}
+    </a>
+  </div>
+)
 
 const captureChipClassName = 'border-accent/20 bg-accent/10 flex h-6 items-center gap-2 rounded-md border px-2'
 
@@ -146,13 +163,34 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
     [currentPhoto],
   )
 
+  // These must match how the gallery filter names cameras and lenses (see usePhotoViewer.ts).
+  const cameraFilterName = useMemo(() => {
+    const exif = currentPhoto.exif ?? exifData
+    if (!exif?.Make || !exif?.Model) return null
+    return `${exif.Make.trim()} ${exif.Model.trim()}`
+  }, [currentPhoto.exif, exifData])
+
+  const lensFilterName = useMemo(() => {
+    const exif = currentPhoto.exif ?? exifData
+    if (!exif?.LensModel) return null
+    const lensModel = exif.LensModel.trim()
+    const lensMake = exif.LensMake?.trim()
+    return lensMake ? `${lensMake} ${lensModel}` : lensModel
+  }, [currentPhoto.exif, exifData])
+
+  // Copyright links to the "usage" page from the site config (social.usage in config.json).
+  const usageUrl = (() => {
+    const url = siteConfig.social?.usage?.trim()
+    return url && /^https?:\/\//i.test(url) ? url : null
+  })()
+
   const handleTagClick = useCallback(
     (tag: string) => {
       if (onTagClick) {
         onTagClick(tag)
         return
       }
-      window.open(`/?tags=${tag}`, '_blank', 'noopener,noreferrer')
+      window.open(`/?tags=${encodeURIComponent(tag)}`, '_blank', 'noopener,noreferrer')
     },
     [onTagClick],
   )
@@ -163,7 +201,18 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
         <ExifSection title={t('exif.basic.info')}>
           <ExifRowGroup>
             {formattedExifData?.dateTime && <Row label={t('exif.capture.time')} value={formattedExifData.dateTime} />}
-            {formattedExifData?.copyright && <Row label={t('exif.copyright')} value={formattedExifData.copyright} />}
+            {formattedExifData?.copyright && (
+              usageUrl
+                ? (
+                    <LinkRow
+                      label={t('exif.copyright')}
+                      value={formattedExifData.copyright}
+                      href={usageUrl}
+                      title="Photo usage and licensing"
+                    />
+                  )
+                : <Row label={t('exif.copyright')} value={formattedExifData.copyright} />
+            )}
           </ExifRowGroup>
         </ExifSection>
 
@@ -173,8 +222,30 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
             {(formattedExifData.camera || formattedExifData.lens) && (
               <ExifSection title={t('exif.device.info')}>
                 <ExifRowGroup>
-                  {formattedExifData.camera && <Row label={t('exif.camera')} value={formattedExifData.camera} />}
-                  {formattedExifData.lens && <Row label={t('exif.lens')} value={formattedExifData.lens} />}
+                  {formattedExifData.camera && (
+                    cameraFilterName
+                      ? (
+                          <LinkRow
+                            label={t('exif.camera')}
+                            value={formattedExifData.camera}
+                            href={`/?cameras=${encodeURIComponent(cameraFilterName)}`}
+                            title="Show all photos taken with this camera"
+                          />
+                        )
+                      : <Row label={t('exif.camera')} value={formattedExifData.camera} />
+                  )}
+                  {formattedExifData.lens && (
+                    lensFilterName
+                      ? (
+                          <LinkRow
+                            label={t('exif.lens')}
+                            value={formattedExifData.lens}
+                            href={`/?lenses=${encodeURIComponent(lensFilterName)}`}
+                            title="Show all photos taken with this lens"
+                          />
+                        )
+                      : <Row label={t('exif.lens')} value={formattedExifData.lens} />
+                  )}
                   {formattedExifData.focalLength && (
                     <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
                   )}
