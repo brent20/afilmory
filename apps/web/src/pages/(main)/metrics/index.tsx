@@ -31,7 +31,7 @@ const BarRow = ({ label, value, max, color = 'bg-accent' }: { label: string; val
   )
 }
 
-export const Component = () => {
+const Component = () => {
   const { t } = useTranslation()
   const photos = usePhotos()
 
@@ -151,3 +151,5 @@ export const Component = () => {
     </div>
   )
 }
+
+export default Component
