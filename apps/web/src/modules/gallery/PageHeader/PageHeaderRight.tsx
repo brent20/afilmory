@@ -60,11 +60,11 @@ export const PageHeaderRight = () => {
               title={t('action.map.explore')}
               onClick={() => navigate('/map')}
             />
-            <ActionIconButton
-              icon="i-mingcute-chart-line"
-              title={t('gallery.metrics.title' as any) || 'Metrics'}
-              onClick={() => navigate('/metrics')}
-            />
+     <ActionIconButton
+        icon="i-mingcute-analytics-line"
+       title={t('gallery.metrics.title' as any) || 'Metrics'}
+       onClick={() => navigate('/metrics')}
+      />
           </>
         )}
 
