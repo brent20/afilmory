@@ -1,6 +1,6 @@
 import os from 'node:os'
 
-import { aiTaggingPlugin, defineBuilderConfig, githubRepoSyncPlugin } from '@afilmory/builder'
+import { aiTaggingPlugin, defineBuilderConfig, geocodingPlugin, githubRepoSyncPlugin } from '@afilmory/builder'
 
 import { env } from './env.js'
 
@@ -69,6 +69,18 @@ export default defineBuilderConfig(() => ({
       accountId: process.env.CF_AI_ACCOUNT_ID,
       apiToken: process.env.CF_AI_API_TOKEN,
       maxPerRun: Number(process.env.CF_AI_MAX_PER_RUN) || 400,
+    }),
+    // Looks up country / state / city for photos with GPS (free OpenStreetMap Nominatim) and adds them
+    // to each photo's location and tags. This must be registered here: plugin settings in config.json
+    // are not read by the builder.
+    geocodingPlugin({
+      enable: true,
+      provider: 'nominatim',
+      language: 'en',
+      // ~1 km grid: photos taken close together share one lookup (Nominatim allows ~1 request/second).
+      cachePrecision: 2,
+      // Nominatim asks apps to identify themselves; a specific agent avoids being blocked.
+      userAgent: 'brentsaltzman-photography/1.0 (https://photography.brentsaltzman.com)',
     }),
     githubRepoSyncPlugin({
       repo: {
