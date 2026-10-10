@@ -61,8 +61,6 @@ export const ShareModal = ({ photo, trigger, blobSrc }: ShareModalTriggerProps) 
 
 const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }) => {
   const { t } = useTranslation()
-  const [isDownloadingOriginal, setIsDownloadingOriginal] = useState(false)
-  const [isDownloadingPreview, setIsDownloadingPreview] = useState(false)
   const [isOgImageLoading, setIsOgImageLoading] = useState(true)
 
   const resolvedBaseUrl = useMemo(() => {
@@ -102,7 +100,7 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
 
   const socialOptions = useMemo(() => getSocialOptions(t), [t])
 
-  const actionColumns = 5 + (canUseNativeShare ? 1 : 0) + (canEmbed ? 1 : 0)
+  const actionColumns = 3 + (canUseNativeShare ? 1 : 0) + (canEmbed ? 1 : 0)
 
   const handleNativeShare = useCallback(async () => {
     if (!canUseNativeShare) {
@@ -147,34 +145,6 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
       throw new Error('Failed to copy')
     }
   }, [embedCode, t])
-
-  const handleDownloadOriginal = useCallback(async () => {
-    try {
-      setIsDownloadingOriginal(true)
-      await downloadFile(photo.originalUrl, `${photo.id}.jpg`)
-      toast.success(t('photo.share.download.original'))
-    }
-    catch {
-      toast.error(t('photo.share.copy.failed'))
-    }
-    finally {
-      setIsDownloadingOriginal(false)
-    }
-  }, [photo.id, photo.originalUrl, t])
-
-  const handleDownloadPreview = useCallback(async () => {
-    try {
-      setIsDownloadingPreview(true)
-      await downloadFile(ogPreviewUrl, `${photo.id}-og.png`)
-      toast.success(t('photo.share.downloadPreview'))
-    }
-    catch {
-      toast.error(t('photo.share.copy.failed'))
-    }
-    finally {
-      setIsDownloadingPreview(false)
-    }
-  }, [ogPreviewUrl, photo.id, t])
 
   const handleSocialShare = useCallback(
     (urlTemplate: string) => {
@@ -242,9 +212,9 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
         <div
           className={clsxm(
             'grid gap-2',
-            actionColumns === 7 && 'grid-cols-7',
-            actionColumns === 6 && 'grid-cols-6',
             actionColumns === 5 && 'grid-cols-5',
+            actionColumns === 4 && 'grid-cols-4',
+            actionColumns === 3 && 'grid-cols-3',
           )}
         >
           {/* Native share button (if available) */}
@@ -252,7 +222,7 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
             <ShareActionButton
               icon="i-mingcute-share-2-line"
               label="System"
-              onClick={handleNativeShare}
+              onClick={}
               title={t('photo.share.system')}
             />
           )}
@@ -274,21 +244,6 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
               title={t('photo.share.embed.description')}
             />
           )}
-          {/* Download buttons */}
-          <ShareActionButton
-            icon="i-mingcute-download-3-line"
-            label={isDownloadingOriginal ? '…' : 'Original'}
-            onClick={handleDownloadOriginal}
-            disabled={isDownloadingOriginal}
-            title={t('photo.share.download.original')}
-          />
-          <ShareActionButton
-            icon="i-mingcute-pic-line"
-            label={isDownloadingPreview ? '…' : 'Preview'}
-            onClick={handleDownloadPreview}
-            disabled={isDownloadingPreview}
-            title={t('photo.share.downloadPreview')}
-          />
         </div>
       </div>
     </div>
@@ -296,22 +251,6 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, blobSrc, dismiss }
 }
 
 ShareSheet.contentClassName = 'max-w-3xl w-full z-1000000'
-
-async function downloadFile(url: string, filename: string) {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error('Unable to download file')
-  }
-  const blob = await response.blob()
-  const blobUrl = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = blobUrl
-  link.download = filename
-  document.body.append(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(blobUrl)
-}
 
 async function buildShareFiles(photo: PhotoManifest, blobSrc?: string) {
   const imageUrl = blobSrc || photo.originalUrl
@@ -332,19 +271,7 @@ function getSocialOptions(t: ReturnType<typeof useTranslation>['t']): SocialShar
       label: 'Twitter',
       icon: 'i-mingcute-twitter-fill',
       url: 'https://twitter.com/intent/tweet?text={text}&url={url}',
-    },
-    {
-      id: 'telegram',
-      label: 'Telegram',
-      icon: 'i-mingcute-telegram-line',
-      url: 'https://t.me/share/url?url={url}&text={text}',
-    },
-    {
-      id: 'weibo',
-      label: t('photo.share.weibo'),
-      icon: 'i-mingcute-weibo-line',
-      url: 'https://service.weibo.com/share/share.php?url={url}&title={text}',
-    },
+    }
   ]
 }
 
