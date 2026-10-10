@@ -54,11 +54,18 @@ export const PageHeaderRight = () => {
 
         {/* Desktop only: Map Link */}
         {!isMobile && (
-          <ActionIconButton
-            icon="i-mingcute-map-pin-line"
-            title={t('action.map.explore')}
-            onClick={() => navigate('/map')}
-          />
+          <>
+            <ActionIconButton
+              icon="i-mingcute-map-pin-line"
+              title={t('action.map.explore')}
+              onClick={() => navigate('/map')}
+            />
+            <ActionIconButton
+              icon="i-mingcute-chart-line"
+              title={t('gallery.metrics.title') || 'Metrics'}
+              onClick={() => navigate('/metrics')}
+            />
+          </>
         )}
 
         {isMobile ? (
