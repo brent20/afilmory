@@ -2,7 +2,7 @@
   "name": "Brent Saltzman",
   "title": "Brent Saltzman",
   "description": "Interested in all things technology with a passion for analog, design, audio, and anything that sparks creativity and imagination.",
-  "url": "https://photos.bbs.tools/",
+  "url": "https://photography.brentsaltzman.com/",
   "accentColor": "#56817A",
   "viewer": {
     "regions": {
@@ -17,7 +17,9 @@
   },
   "social": {
     "github": "",
-    "twitter": "brentb_s"
+    "twitter": "",
+    "contact": "https://brentsaltzman.com/contact/",
+    "usage": "https://brentsaltzman.com/photography-rights/"
   },
   "feed": {
     "folo": {
