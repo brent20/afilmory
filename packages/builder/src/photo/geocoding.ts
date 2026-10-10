@@ -217,6 +217,9 @@ export class MapboxGeocodingProvider implements GeocodingProvider {
         // 提取国家信息
         const country = context.country?.name
 
+        // 提取州/省信息
+        const state = context.region?.name
+
         // 提取城市信息 - 拼接多个层级（从小到大）
         const cityParts = [
           context.locality?.name,
@@ -233,12 +236,13 @@ export class MapboxGeocodingProvider implements GeocodingProvider {
         // 构建位置名称
         const locationName = properties.place_formatted || properties.name
 
-        log.success(`成功获取位置: ${city}, ${country}`)
+        log.success(`成功获取位置: ${city}, ${state}, ${country}`)
 
         return {
           latitude: lat,
           longitude: lon,
           country,
+          state,
           city,
           locationName,
         }
@@ -325,6 +329,9 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
         // 提取国家信息
         const country = address.country || address.country_code?.toUpperCase()
 
+        // 提取州/省信息
+        const state = address.state
+
         // 提取城市信息 - 拼接多个层级（从小到大）
         const cityParts = [
           address.village,
@@ -345,12 +352,13 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
         // 构建位置名称
         const locationName = data.display_name
 
-        log.success(`成功获取位置: ${city}, ${country}`)
+        log.success(`成功获取位置: ${city}, ${state}, ${country}`)
 
         return {
           latitude: lat,
           longitude: lon,
           country,
+          state,
           city,
           locationName,
         }
@@ -458,7 +466,7 @@ export async function extractLocationFromGPS(
 
   // 验证坐标范围
   if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) {
-    log.warn(`无效的 GPS 坐标: ${latitude}, ${longitude}`)
+    log.warn(`无效의 GPS 坐标: ${latitude}, ${longitude}`)
     return null
   }
 
