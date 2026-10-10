@@ -109,10 +109,10 @@ export async function loadPlugins(
   if (entries.length === 0) return []
 
   const { baseDir } = options
-
   const results: LoadedPluginDefinition[] = []
 
   for (const entry of entries) {
+    // Case 1: ESM Importer function
     if (isPluginESMImporter(entry)) {
       const { default: pluginFactoryOrPlugin } = await entry()
       const plugin = await instantiatePlugin(pluginFactoryOrPlugin)
@@ -127,38 +127,37 @@ export async function loadPlugins(
       continue
     }
 
-    let specifier = typeof entry === 'string' ? entry : entry.specifier
+    // Case 2: Reference to a plugin (string or object with specifier)
+    if (typeof entry === 'string' || (typeof entry === 'object' && entry !== null && 'specifier' in entry)) {
+      const isString = typeof entry === 'string'
+      let specifier = isString ? entry : (entry as any).specifier
+      const pluginOptions = isString ? undefined : (entry as any).options
 
-    // Resolve built-in afilmory plugins
-    if (typeof specifier === 'string' && specifier.startsWith('afilmory:')) {
-      const pluginName = specifier.replace('afilmory:', '')
-      specifier = path.join(baseDir, 'src/plugins', `${pluginName}.js`)
-    }
-
-    if (typeof entry === 'string' || (typeof entry === 'object' && 'specifier' in entry)) {
-      const descriptor = typeof entry === 'string' ? { specifier: specifier } : entry
-      if (typeof descriptor.specifier === 'string') {
-        descriptor.specifier = specifier
+      // Resolve built-in afilmory: prefix
+      if (typeof specifier === 'string' && specifier.startsWith('afilmory:')) {
+        const pluginName = specifier.replace('afilmory:', '')
+        specifier = path.join(baseDir, 'src/plugins', `${pluginName}.js`)
       }
-      const { resolvedPath } = resolveSpecifier(descriptor.specifier, baseDir)
 
+      const { resolvedPath } = resolveSpecifier(specifier, baseDir)
       const mod = await importModule(resolvedPath)
-      const plugin = await instantiatePlugin(mod, descriptor.options)
+      const plugin = await instantiatePlugin(mod, pluginOptions)
       const hooks = normalizeHooks(plugin)
 
       const name =
         plugin.name ||
-        descriptor.name ||
-        (descriptor.specifier.startsWith('.') ? path.basename(descriptor.specifier) : descriptor.specifier)
+        (typeof entry === 'object' && 'name' in entry ? (entry as any).name : undefined) ||
+        (typeof specifier === 'string' && specifier.startsWith('.') ? path.basename(specifier) : specifier)
 
       results.push({
         name,
         hooks,
-        pluginOptions: descriptor.options,
+        pluginOptions,
       })
       continue
     }
 
+    // Case 3: Inline Plugin object
     const plugin = await instantiatePlugin(entry)
     const hooks = normalizeHooks(plugin)
     const name = plugin.name || `inline-plugin-${results.length}`
