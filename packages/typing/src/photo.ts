@@ -7,6 +7,7 @@ export interface LocationInfo {
   latitude: number
   longitude: number
   country?: string
+  state?: string
   city?: string
   locationName?: string
 }
@@ -120,7 +121,7 @@ export interface PhotoManifestItem extends PhotoInfo {
   toneAnalysis: ToneAnalysis | null // 影调分析结果
   location: LocationInfo | null // 地理位置信息（反向地理编码）
   isHDR?: boolean
-  // Video source (Live Photo or Motion Photo)
+  // Video source (Motion Photo or Live Photo)
   video?: VideoSource
 }
 
