@@ -1,7 +1,5 @@
-import { useAtomValue } from 'jotai'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { gallerySettingAtom } from '~/atoms/app'
 import { useMobile } from '~/hooks/useMobile'
 import { GALLERY_GUTTER, GALLERY_SIDE_PADDING } from '~/lib/gallery-layout'
 import type { PhotoManifest } from '~/types/photo'
@@ -10,20 +8,10 @@ import type { MasonryRef } from './Masonic'
 import { Masonry } from './Masonic'
 import { MasonryPhotoItem } from './MasonryPhotoItem'
 
-const COLUMN_WIDTH_CONFIG = {
-  auto: {
-    mobile: 150,
-    desktop: 250,
-    maxColumns: 8,
-  },
-  min: {
-    mobile: 120,
-    desktop: 200,
-  },
-  max: {
-    mobile: 250,
-    desktop: 500,
-  },
+const AUTO_COLUMN_CONFIG = {
+  mobile: 150,
+  desktop: 250,
+  maxColumns: 8,
 }
 
 interface MasonryViewProps {
@@ -33,12 +21,11 @@ interface MasonryViewProps {
 }
 
 export const MasonryView = ({ photos, onRender, scrollToIndex }: MasonryViewProps) => {
-  const { columns } = useAtomValue(gallerySettingAtom)
   const [containerWidth, setContainerWidth] = useState(0)
   const masonryRef = useRef<MasonryRef>(null)
   const isMobile = useMobile()
 
-  // 监听容器宽度变化
+  // Track the window width
   useEffect(() => {
     const updateContainerWidth = () => {
       setContainerWidth(window.innerWidth)
@@ -52,37 +39,25 @@ export const MasonryView = ({ photos, onRender, scrollToIndex }: MasonryViewProp
     }
   }, [])
 
-  // 动态计算列宽
+  // Column width is always automatic
   const columnWidth = useMemo(() => {
-    const { auto, min, max } = COLUMN_WIDTH_CONFIG
-    const gutter = isMobile ? GALLERY_GUTTER.mobile : GALLERY_GUTTER.desktop // gap between columns
+    const gutter = isMobile ? GALLERY_GUTTER.mobile : GALLERY_GUTTER.desktop
     const sidePadding = isMobile ? GALLERY_SIDE_PADDING.mobile : GALLERY_SIDE_PADDING.desktop
     const availableWidth = containerWidth - sidePadding
 
-    if (columns === 'auto') {
-      const autoWidth = isMobile ? auto.mobile : auto.desktop
-      if (!isMobile) {
-        const { maxColumns } = auto
-        // 当屏幕宽度超过一定阈值时，通过计算动态列宽来限制最大列数
-        const colCount = Math.floor((availableWidth + gutter) / (autoWidth + gutter))
+    const autoWidth = isMobile ? AUTO_COLUMN_CONFIG.mobile : AUTO_COLUMN_CONFIG.desktop
+    if (!isMobile) {
+      const { maxColumns } = AUTO_COLUMN_CONFIG
+      // On very wide screens, widen the columns so there are never more than maxColumns
+      const colCount = Math.floor((availableWidth + gutter) / (autoWidth + gutter))
 
-        if (colCount > maxColumns) {
-          return (availableWidth - (maxColumns - 1) * gutter) / maxColumns
-        }
+      if (colCount > maxColumns) {
+        return (availableWidth - (maxColumns - 1) * gutter) / maxColumns
       }
-
-      return autoWidth
     }
 
-    // 自定义列数模式：根据容器宽度和列数计算列宽
-    const calculatedWidth = (availableWidth - (columns - 1) * gutter) / columns
-
-    // 根据设备类型设置最小和最大列宽
-    const minWidth = isMobile ? min.mobile : min.desktop
-    const maxWidth = isMobile ? max.mobile : max.desktop
-
-    return Math.max(Math.min(calculatedWidth, maxWidth), minWidth)
-  }, [isMobile, columns, containerWidth])
+    return autoWidth
+  }, [isMobile, containerWidth])
 
   const gutter = isMobile ? GALLERY_GUTTER.mobile : GALLERY_GUTTER.desktop
 
