@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import type { PhotoManifest } from '~/types/photo'
 
@@ -44,69 +43,41 @@ export const useVisiblePhotosDateRange = (_photos: PhotoManifest[]) => {
     // 回退到 lastModified
     return new Date(photo.lastModified)
   }, [])
-  const { i18n } = useTranslation()
+  // Dates in the header are always shown in English, whatever the browser language is.
+  const formatDateRange = useCallback((startDate: Date, endDate: Date): string => {
+    const month = (date: Date) => date.toLocaleDateString('en-US', { month: 'short' })
 
-  const formatDateRange = useCallback(
-    (startDate: Date, endDate: Date): string => {
-      const startYear = startDate.getFullYear()
-      const endYear = endDate.getFullYear()
-      const startMonth = startDate.getMonth()
-      const endMonth = endDate.getMonth()
-
-      // 如果是同一天
-      if (startDate.toDateString() === endDate.toDateString()) {
-        return startDate.toLocaleDateString(i18n.language, {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        })
-      }
-
-      // 如果是同一年
-      if (startYear === endYear) {
-        // 如果是同一个月
-        if (startMonth === endMonth) {
-          return `${startYear}年${startDate.getMonth() + 1}月${startDate.getDate()}日 - ${endDate.getDate()}日`
-        } else {
-          return `${startYear}年${startDate.getMonth() + 1}月 - ${endDate.getMonth() + 1}月`
-        }
-      }
-
-      // 不同年份
-      return `${startYear}年${startDate.getMonth() + 1}月 - ${endYear}年${endDate.getMonth() + 1}月`
-    },
-    [i18n.language],
-  )
-
-  const extractLocation = useCallback((photos: PhotoManifest[]): string | undefined => {
-    // 尝试从照片标签中提取位置信息
-    for (const photo of photos) {
-      // 如果照片有位置标签，优先使用
-      if (photo.tags) {
-        const locationTag = photo.tags.find(
-          (tag) =>
-            tag.includes('省') ||
-            tag.includes('市') ||
-            tag.includes('区') ||
-            tag.includes('县') ||
-            tag.includes('镇') ||
-            tag.includes('村') ||
-            tag.includes('街道') ||
-            tag.includes('路') ||
-            tag.includes('北京') ||
-            tag.includes('上海') ||
-            tag.includes('广州') ||
-            tag.includes('深圳') ||
-            tag.includes('杭州') ||
-            tag.includes('南京') ||
-            tag.includes('成都'),
-        )
-        if (locationTag) {
-          return locationTag
-        }
-      }
+    // Same day: "March 4, 2024"
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     }
 
+    const startYear = startDate.getFullYear()
+    const endYear = endDate.getFullYear()
+
+    if (startYear === endYear) {
+      // Same month: "Mar 4 - 9, 2024"
+      if (startDate.getMonth() === endDate.getMonth()) {
+        return `${month(startDate)} ${startDate.getDate()} - ${endDate.getDate()}, ${startYear}`
+      }
+      // Same year: "Mar - Jun 2024"
+      return `${month(startDate)} - ${month(endDate)} ${startYear}`
+    }
+
+    // Different years: "Mar 2023 - Jun 2024"
+    return `${month(startDate)} ${startYear} - ${month(endDate)} ${endYear}`
+  }, [])
+
+  // Use the geocoded location (city, state) of the first visible photo that has one.
+  const extractLocation = useCallback((photos: PhotoManifest[]): string | undefined => {
+    for (const photo of photos) {
+      const location = photo.location
+      if (!location) continue
+      const place = location.cityName || location.city
+      const parts = [place, location.state].filter(Boolean)
+      if (parts.length > 0) return parts.join(', ')
+      if (location.country) return location.country
+    }
     return undefined
   }, [])
 
