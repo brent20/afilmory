@@ -6,7 +6,7 @@ import { clsxm, Spring } from '@afilmory/utils'
 import { isNil } from 'es-toolkit/compat'
 import { useAtomValue } from 'jotai'
 import { m } from 'motion/react'
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 import { Fragment, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MiniMap } from './MiniMap'
@@ -17,6 +17,7 @@ import {
   CarbonIsoOutline,
   MaterialSymbolsExposure,
   MaterialSymbolsShutterSpeed,
+  StreamlineImageAccessoriesLensesPhotosCameraShutterPicturePhotographyPicturesPhotoLens as LensIcon,
   TablerAperture,
 } from '~/icons'
 import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
@@ -27,21 +28,39 @@ import { HistogramChart } from './HistogramChart'
 import { PhotoRegionsSection } from './PhotoRegionsSection'
 import { RawExifViewer } from './RawExifViewer'
 
-/** Same layout as `Row`, but the value is a link. */
-const LinkRow: FC<{ label: string, value: string, href: string, title?: string }> = ({ label, value, href, title }) => (
+/**
+ * Same layout as `Row`, but the value is a link.
+ *
+ * Affordance is deliberately quiet: a dotted underline and a faint arrow at rest.
+ * On hover the text stays full-contrast (no accent-coloured text, which is hard to
+ * read on the dark glass panel); the accent shows up as a soft wash behind it instead.
+ */
+const LinkRow: FC<{ label: string, value: string, href: string, title?: string, icon?: ReactNode }> = ({
+  label,
+  value,
+  href,
+  title,
+  icon,
+}) => (
   <div className="flex justify-between gap-4 text-sm">
-    <span className="text-text-secondary shrink-0">{label}</span>
+    <span className="text-text-secondary flex shrink-0 items-center gap-1.5">
+      {icon}
+      {label}
+    </span>
     <a
       href={href}
       target="_blank"
       rel="noopener noreferrer"
       title={title}
-      className="text-text hover:text-accent min-w-0 text-right underline-offset-2 transition-colors hover:underline"
+      className="group text-text hover:bg-accent/15 focus-visible:bg-accent/15 -my-0.5 -mr-1.5 inline-flex min-w-0 items-center justify-end gap-1 rounded-md px-1.5 py-0.5 text-right underline decoration-white/40 decoration-dotted underline-offset-4 transition-colors duration-200 hover:decoration-white hover:decoration-solid focus-visible:decoration-white focus-visible:decoration-solid"
     >
-      {value}
+      <span className="min-w-0">{value}</span>
+      <i className="i-mingcute-arrow-right-up-line shrink-0 text-xs opacity-40 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />
     </a>
   </div>
 )
+
+const rowIconClassName = 'shrink-0 text-sm text-white/70'
 
 const captureChipClassName = 'border-accent/20 bg-accent/10 flex h-6 items-center gap-2 rounded-md border px-2'
 
@@ -226,25 +245,39 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                     cameraFilterName
                       ? (
                           <LinkRow
+                            icon={<i className={`i-mingcute-camera-line ${rowIconClassName}`} />}
                             label={t('exif.camera')}
                             value={formattedExifData.camera}
                             href={`/?cameras=${encodeURIComponent(cameraFilterName)}`}
                             title="Show all photos taken with this camera"
                           />
                         )
-                      : <Row label={t('exif.camera')} value={formattedExifData.camera} />
+                      : (
+                          <Row
+                            icon={<i className={`i-mingcute-camera-line ${rowIconClassName}`} />}
+                            label={t('exif.camera')}
+                            value={formattedExifData.camera}
+                          />
+                        )
                   )}
                   {formattedExifData.lens && (
                     lensFilterName
                       ? (
                           <LinkRow
+                            icon={<LensIcon className={rowIconClassName} />}
                             label={t('exif.lens')}
                             value={formattedExifData.lens}
                             href={`/?lenses=${encodeURIComponent(lensFilterName)}`}
                             title="Show all photos taken with this lens"
                           />
                         )
-                      : <Row label={t('exif.lens')} value={formattedExifData.lens} />
+                      : (
+                          <Row
+                            icon={<LensIcon className={rowIconClassName} />}
+                            label={t('exif.lens')}
+                            value={formattedExifData.lens}
+                          />
+                        )
                   )}
                   {formattedExifData.focalLength && (
                     <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
