@@ -23,6 +23,14 @@ export const GALLERY_BATCH_SIZE = 30
  */
 export const GALLERY_TIMELINE = true
 
+/**
+ * Look of the timeline:
+ *  - 'ruler': a tick for each month with the current month and year written beside it.
+ *  - 'meter': styled like a camera's exposure scale: a baseline with a tick for each month, longer ticks with
+ *    the year number at each year change, and a small needle pointing at where you are.
+ */
+export const GALLERY_TIMELINE_STYLE: 'ruler' | 'meter' = 'ruler'
+
 /** Gap between photos in the grid, in pixels. */
 export const GALLERY_GUTTER = GALLERY_ROOMY_LAYOUT ? { mobile: 8, desktop: 16 } : { mobile: 4, desktop: 4 }
 
