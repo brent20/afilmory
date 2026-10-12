@@ -378,9 +378,12 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                         value={[currentPhoto.location.city, currentPhoto.location.state, currentPhoto.location.country].filter(Boolean).join(', ')}
                       />
                     )}
+                                     {/* Address row hidden for now
                     {currentPhoto.location.locationName && (
                       <Row label={t('exif.gps.address')} value={currentPhoto.location.locationName} ellipsis={true} />
                     )}
+                    */}
+
                   </ExifRowGroup>
                 )}
 
