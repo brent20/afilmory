@@ -109,7 +109,7 @@ export const Masonry = <Item,>(props: MasonryProps<Item> & { ref?: React.Ref<Mas
   const scrollToIndex = useScrollToIndex(nextProps.positioner, {
     height: nextProps.height,
     offset: containerPos.offset,
-    align: typeof props.scrollToIndex === 'object' ? props.scrollToIndex.align : void,
+    align: typeof props.scrollToIndex === 'object' ? props.scrollToIndex.align : void 0,
     element: scrollElement ?? undefined,
   })
   const index =
