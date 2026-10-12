@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { gallerySettingAtom } from '~/atoms/app'
+import { useSearchAnalytics } from '~/hooks/useAnalyticsEvents'
 import { usePhotoViewer } from '~/hooks/usePhotoViewer'
 import { MageLens } from '~/icons'
 import { DateRangePicker } from '~/modules/gallery/DateRangePicker'
@@ -118,6 +119,7 @@ export const CommandPalette = ({ isOpen, onClose }: CommandPaletteProps) => {
   const { openViewer } = usePhotoViewer()
 
   const [query, setQuery] = useState('')
+  useSearchAnalytics(query)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
