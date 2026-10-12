@@ -256,6 +256,32 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
               </ExifSection>
             )}
 
+        {(formattedExifData.exposureMode
+          || formattedExifData.exposureProgram
+          || formattedExifData.meteringMode
+          || formattedExifData.whiteBalance
+          || formattedExifData.flash) && (
+          <ExifSection title={t('exif.capture.mode')}>
+            <ExifRowGroup>
+              {!isNil(formattedExifData.exposureProgram) && (
+                <Row label={t('exif.exposureprogram.title')} value={formattedExifData.exposureProgram} />
+              )}
+              {!isNil(formattedExifData.exposureMode) && (
+                <Row label={t('exif.exposure.mode.title')} value={formattedExifData.exposureMode} />
+              )}
+              {!isNil(formattedExifData.meteringMode) && (
+                <Row label={t('exif.metering.mode.type')} value={formattedExifData.meteringMode} />
+              )}
+              {!isNil(formattedExifData.whiteBalance) && (
+                <Row label={t('exif.white.balance.title')} value={formattedExifData.whiteBalance} />
+              )}
+              {!isNil(formattedExifData.flash) && (
+                <Row label={t('exif.flash.title')} value={formattedExifData.flash} />
+              )}
+            </ExifRowGroup>
+          </ExifSection>
+        )}
+
         {formattedExifData
           && (formattedExifData.shutterSpeed
             || formattedExifData.iso
@@ -390,34 +416,6 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                 {decimalLatitude !== null && decimalLongitude !== null && (
                   <MiniMap latitude={decimalLatitude} longitude={decimalLongitude} photoId={currentPhoto.id} />
                 )}
-              </ExifSection>
-            )}
-
-
-            
-            {(formattedExifData.exposureMode
-              || formattedExifData.exposureProgram
-              || formattedExifData.meteringMode
-              || formattedExifData.whiteBalance
-              || formattedExifData.flash) && (
-              <ExifSection title={t('exif.capture.mode')}>
-                <ExifRowGroup>
-                  {!isNil(formattedExifData.exposureProgram) && (
-                    <Row label={t('exif.exposureprogram.title')} value={formattedExifData.exposureProgram} />
-                  )}
-                  {!isNil(formattedExifData.exposureMode) && (
-                    <Row label={t('exif.exposure.mode.title')} value={formattedExifData.exposureMode} />
-                  )}
-                  {!isNil(formattedExifData.meteringMode) && (
-                    <Row label={t('exif.metering.mode.type')} value={formattedExifData.meteringMode} />
-                  )}
-                  {!isNil(formattedExifData.whiteBalance) && (
-                    <Row label={t('exif.white.balance.title')} value={formattedExifData.whiteBalance} />
-                  )}
-                  {!isNil(formattedExifData.flash) && (
-                    <Row label={t('exif.flash.title')} value={formattedExifData.flash} />
-                  )}
-                </ExifRowGroup>
               </ExifSection>
             )}
           </Fragment>
