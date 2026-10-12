@@ -7,7 +7,9 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { gallerySettingAtom, isCommandPaletteOpenAtom } from '~/atoms/app'
+import { useCollections } from '~/hooks/useCollections'
 import { useContextPhotos } from '~/hooks/usePhotoViewer'
+import { isCollectionSelected } from '~/lib/collections'
 import type { PhotoManifest } from '~/types/photo'
 
 import { FilterChips } from './FilterChips'
@@ -42,6 +44,7 @@ export const ActiveFiltersHero = () => {
   const [gallerySetting, setGallerySetting] = useAtom(gallerySettingAtom)
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
   const photos = useContextPhotos()
+  const collections = useCollections()
 
   // 获取背景照片（使用筛选后的照片）
   const backgroundPhotos = useMemo(() => getRandomPhotos(photos, 12), [photos])
@@ -59,7 +62,9 @@ export const ActiveFiltersHero = () => {
   const headline = useMemo(() => {
     const fragments: string[] = []
     if (gallerySetting.selectedTags.length > 0) {
-      fragments.push(summarizeValues(gallerySetting.selectedTags, 4))
+      // When the tags are exactly a collection's tags, show the collection's name instead of the tag list.
+      const collection = collections.find((item) => isCollectionSelected(item, gallerySetting.selectedTags))
+      fragments.push(collection ? collection.title : summarizeValues(gallerySetting.selectedTags, 4))
     }
     if (gallerySetting.selectedCameras.length > 0) {
       fragments.push(summarizeValues(gallerySetting.selectedCameras, 2))
@@ -83,6 +88,7 @@ export const ActiveFiltersHero = () => {
     gallerySetting.selectedLenses,
     gallerySetting.selectedRatings,
     gallerySetting.selectedTags,
+    collections,
     t,
   ])
 
