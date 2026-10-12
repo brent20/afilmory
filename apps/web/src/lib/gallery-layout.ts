@@ -6,7 +6,7 @@
  * Roomier layout: wider page margins, bigger gaps between photos and more space above the grid.
  * Set to false to go back to the original tight layout.
  */
-export const GALLERY_ROOMY_LAYOUT = true
+export const GALLERY_ROOMY_LAYOUT = false
 
 /**
  * Show the first batch of photos with a "Show more" button instead of one very long page.
