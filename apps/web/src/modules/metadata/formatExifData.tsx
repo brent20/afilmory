@@ -1,6 +1,6 @@
 import type { FujiRecipe, PickedExif } from '@afilmory/builder'
 import { EllipsisHorizontalTextWithTooltip } from '@afilmory/ui'
-import type { FC } from 'react'
+import type { FC, ReactNode } from 'react'
 
 import { i18nAtom } from '~/i18n'
 import { jotaiStore } from '~/lib/jotai'
@@ -378,10 +378,14 @@ export const Row: FC<{
   label: string
   value: string | number | null | undefined | number[]
   ellipsis?: boolean
-}> = ({ label, value, ellipsis = false }) => {
+  icon?: ReactNode
+}> = ({ label, value, ellipsis = false, icon }) => {
   return (
     <div className="flex justify-between gap-4 text-sm">
-      <span className="text-text-secondary shrink-0">{label}</span>
+      <span className="text-text-secondary flex shrink-0 items-center gap-1.5">
+        {icon}
+        {label}
+      </span>
       {ellipsis ? (
         <span className="relative min-w-0 flex-1 shrink">
           <span className="absolute inset-0">
