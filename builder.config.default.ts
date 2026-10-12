@@ -64,11 +64,13 @@ export default defineBuilderConfig(() => ({
     // Automatic photo tags via Cloudflare Workers AI (free tier). Turns on only when both
     // CF_AI_ACCOUNT_ID and CF_AI_API_TOKEN are set in the build environment.
     // Set CF_AI_MAX_PER_RUN=5 for a quick first test run.
+    // Set CF_AI_RETAG=1 for one build to ignore cached tags and re-tag every photo.
     aiTaggingPlugin({
       enable: Boolean(process.env.CF_AI_ACCOUNT_ID && process.env.CF_AI_API_TOKEN),
       accountId: process.env.CF_AI_ACCOUNT_ID,
       apiToken: process.env.CF_AI_API_TOKEN,
       maxPerRun: Number(process.env.CF_AI_MAX_PER_RUN) || 400,
+      forceRetag: process.env.CF_AI_RETAG === '1',
     }),
     // Looks up country / state / city for photos with GPS (free OpenStreetMap Nominatim) and adds them
     // to each photo's location and tags. This must be registered here: plugin settings in config.json
