@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { gallerySettingAtom } from '~/atoms/app'
 import { useMobile } from '~/hooks/useMobile'
+import { GALLERY_GUTTER, GALLERY_SIDE_PADDING } from '~/lib/gallery-layout'
 import type { PhotoManifest } from '~/types/photo'
 
 import type { MasonryRef } from './Masonic'
@@ -28,9 +29,10 @@ const COLUMN_WIDTH_CONFIG = {
 interface MasonryViewProps {
   photos: PhotoManifest[]
   onRender?: (startIndex: number, stopIndex: number, items: any[]) => void
+  scrollToIndex?: number
 }
 
-export const MasonryView = ({ photos, onRender }: MasonryViewProps) => {
+export const MasonryView = ({ photos, onRender, scrollToIndex }: MasonryViewProps) => {
   const { columns } = useAtomValue(gallerySettingAtom)
   const [containerWidth, setContainerWidth] = useState(0)
   const masonryRef = useRef<MasonryRef>(null)
@@ -53,8 +55,9 @@ export const MasonryView = ({ photos, onRender }: MasonryViewProps) => {
   // 动态计算列宽
   const columnWidth = useMemo(() => {
     const { auto, min, max } = COLUMN_WIDTH_CONFIG
-    const gutter = 4 // 列间距
-    const availableWidth = containerWidth - (isMobile ? 8 : 32) // 移动端和桌面端的 padding 不同
+    const gutter = isMobile ? GALLERY_GUTTER.mobile : GALLERY_GUTTER.desktop // gap between columns
+    const sidePadding = isMobile ? GALLERY_SIDE_PADDING.mobile : GALLERY_SIDE_PADDING.desktop
+    const availableWidth = containerWidth - sidePadding
 
     if (columns === 'auto') {
       const autoWidth = isMobile ? auto.mobile : auto.desktop
@@ -81,6 +84,8 @@ export const MasonryView = ({ photos, onRender }: MasonryViewProps) => {
     return Math.max(Math.min(calculatedWidth, maxWidth), minWidth)
   }, [isMobile, columns, containerWidth])
 
+  const gutter = isMobile ? GALLERY_GUTTER.mobile : GALLERY_GUTTER.desktop
+
   return (
     <Masonry<PhotoManifest>
       ref={masonryRef}
@@ -93,8 +98,9 @@ export const MasonryView = ({ photos, onRender }: MasonryViewProps) => {
       )}
       onRender={onRender}
       columnWidth={columnWidth}
-      columnGutter={4}
-      rowGutter={4}
+      columnGutter={gutter}
+      rowGutter={gutter}
+      scrollToIndex={scrollToIndex}
       itemHeightEstimate={400}
       itemKey={useCallback((data, _index) => {
         return data.id
