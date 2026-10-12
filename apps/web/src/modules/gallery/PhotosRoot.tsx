@@ -1,12 +1,14 @@
 import { useScrollViewElement } from '@afilmory/ui'
 import clsx from 'clsx'
 import { useAtomValue } from 'jotai'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { gallerySettingAtom } from '~/atoms/app'
+import { useFilterAnalytics } from '~/hooks/useAnalyticsEvents'
 import { useHasActiveFilters } from '~/hooks/useHasActiveFilters'
 import { useContextPhotos } from '~/hooks/usePhotoViewer'
 import { useVisiblePhotosDateRange } from '~/hooks/useVisiblePhotosDateRange'
+import { trackEvent } from '~/lib/analytics'
 import { COLLECTIONS_ENABLED } from '~/lib/collections'
 import {
   GALLERY_BATCH_SIZE,
@@ -31,6 +33,15 @@ export const PhotosRoot = () => {
   const [showFloatingActions, setShowFloatingActions] = useState(false)
 
   const allPhotos = useContextPhotos()
+
+  // Google Analytics: what visitors filter for, and how they browse
+  useFilterAnalytics()
+  const lastViewMode = useRef(viewMode)
+  useEffect(() => {
+    if (lastViewMode.current === viewMode) return
+    lastViewMode.current = viewMode
+    trackEvent('view_mode_change', { view_mode: viewMode })
+  }, [viewMode])
 
   // "Show more": only the first batch is shown until the visitor asks for more.
   const [visibleCount, setVisibleCount] = useState(GALLERY_BATCH_SIZE)
@@ -59,11 +70,22 @@ export const PhotosRoot = () => {
     [handleDateRender],
   )
 
-  const handleJump = useCallback((photoIndex: number) => {
-    // Make sure the target month is loaded, then scroll to it.
-    setVisibleCount((count) => Math.max(count, photoIndex + GALLERY_BATCH_SIZE))
-    setJumpTarget(photoIndex)
-  }, [])
+  const jumpLogTimer = useRef<number>(undefined)
+  const handleJump = useCallback(
+    (photoIndex: number) => {
+      // Make sure the target month is loaded, then scroll to it.
+      setVisibleCount((count) => Math.max(count, photoIndex + GALLERY_BATCH_SIZE))
+      setJumpTarget(photoIndex)
+
+      // Google Analytics: log where the visitor ended up, once they stop dragging along the timeline.
+      window.clearTimeout(jumpLogTimer.current)
+      jumpLogTimer.current = window.setTimeout(() => {
+        const taken = allPhotos[photoIndex]?.dateTaken
+        trackEvent('timeline_jump', { target_month: typeof taken === 'string' && /^\d{4}-\d{2}/.test(taken) ? taken.slice(0, 7) : undefined })
+      }, 800)
+    },
+    [allPhotos],
+  )
 
   // Clear the jump target afterwards so the same month can be jumped to again.
   useEffect(() => {
@@ -122,7 +144,10 @@ export const PhotosRoot = () => {
           <div className="mt-12 flex justify-center">
             <button
               type="button"
-              onClick={() => setVisibleCount((count) => count + GALLERY_BATCH_SIZE)}
+              onClick={() => {
+                trackEvent('show_more', { photos_shown: Math.min(visibleCount + GALLERY_BATCH_SIZE, allPhotos.length) })
+                setVisibleCount((count) => count + GALLERY_BATCH_SIZE)
+              }}
               className="text-text-secondary border-white/20 hover:border-white/60 rounded-full border px-6 py-2 text-sm transition-colors duration-200 hover:text-white"
             >
               Show more
