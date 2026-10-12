@@ -16,6 +16,35 @@ export function TablerAperture(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+/** Field-of-view fan: the lens point on the left widening to the frame on the right. Matches TablerAperture's stroke style. */
+export function FocalLengthIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M3 12L20 4.5M3 12l17 7.5M20 4.5v15"
+      />
+    </svg>
+  )
+}
+
+/** Lens seen from the front: outer barrel, inner glass element and a small highlight. Matches TablerAperture's stroke style. */
+export function LensElementIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" {...props}>
+      <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="4.5" />
+        <path d="M10.2 10.4a2.2 2.2 0 0 1 1.6-.9" />
+      </g>
+    </svg>
+  )
+}
+
 export function CarbonIsoOutline(props: SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32" {...props}>
