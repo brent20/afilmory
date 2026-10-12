@@ -7,6 +7,7 @@ import { gallerySettingAtom } from '~/atoms/app'
 import { useHasActiveFilters } from '~/hooks/useHasActiveFilters'
 import { useContextPhotos } from '~/hooks/usePhotoViewer'
 import { useVisiblePhotosDateRange } from '~/hooks/useVisiblePhotosDateRange'
+import { COLLECTIONS_ENABLED } from '~/lib/collections'
 import {
   GALLERY_BATCH_SIZE,
   GALLERY_ROOMY_LAYOUT,
@@ -17,6 +18,8 @@ import {
 import type { PanelType } from './ActionPanel'
 import { ActionPanel } from './ActionPanel'
 import { ActiveFiltersHero } from './ActiveFiltersHero'
+import { CollectionsNav } from './CollectionsNav'
+import { CollectionTiles } from './CollectionTiles'
 import { ListView } from './ListView'
 import { MasonryView } from './MasonryView'
 import { PageFooter } from './PageFooter'
@@ -107,6 +110,8 @@ export const PhotosRoot = () => {
           !hasActiveFilters && (GALLERY_ROOMY_LAYOUT ? 'mt-20' : 'mt-12'),
         )}
       >
+        {COLLECTIONS_ENABLED && <CollectionsNav />}
+
         {viewMode === 'list' ? (
           <ListView photos={photos} />
         ) : (
@@ -127,6 +132,8 @@ export const PhotosRoot = () => {
             </button>
           </div>
         )}
+
+        {COLLECTIONS_ENABLED && <CollectionTiles />}
       </div>
 
       {GALLERY_TIMELINE && viewMode !== 'list' && (
