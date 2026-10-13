@@ -3,12 +3,14 @@ import { Link } from 'react-router'
 
 import { gallerySettingAtom } from '~/atoms/app'
 import { useCollections } from '~/hooks/useCollections'
+import { useScrollGalleryToTop } from '~/hooks/useScrollGalleryToTop'
 import { isCollectionSelected } from '~/lib/collections'
 
 /** Large picture tiles linking to each collection, shown below the photos. */
 export const CollectionTiles = () => {
   const collections = useCollections()
   const { selectedTags } = useAtomValue(gallerySettingAtom)
+  const scrollToTop = useScrollGalleryToTop()
 
   // Don't offer the collection the visitor is already looking at.
   const others = collections.filter((collection) => !isCollectionSelected(collection, selectedTags))
@@ -22,6 +24,7 @@ export const CollectionTiles = () => {
           <Link
             key={collection.slug}
             to={collection.href}
+            onClick={scrollToTop}
             className="group relative block aspect-4/3 overflow-hidden bg-white/5"
           >
             {collection.cover?.thumbnailUrl && (
