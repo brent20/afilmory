@@ -15,9 +15,10 @@ import { siteConfig } from '~/config'
 import { useMobile } from '~/hooks/useMobile'
 import {
   CarbonIsoOutline,
+  FocalLengthIcon,
+  LensElementIcon,
   MaterialSymbolsExposure,
   MaterialSymbolsShutterSpeed,
-  StreamlineImageAccessoriesLensesPhotosCameraShutterPicturePhotographyPicturesPhotoLens as LensIcon,
   TablerAperture,
 } from '~/icons'
 import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
@@ -264,7 +265,7 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                     lensFilterName
                       ? (
                           <LinkRow
-                            icon={<LensIcon className={rowIconClassName} />}
+                            icon={<LensElementIcon className={rowIconClassName} />}
                             label={t('exif.lens')}
                             value={formattedExifData.lens}
                             href={`/?lenses=${encodeURIComponent(lensFilterName)}`}
@@ -273,17 +274,25 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                         )
                       : (
                           <Row
-                            icon={<LensIcon className={rowIconClassName} />}
+                            icon={<LensElementIcon className={rowIconClassName} />}
                             label={t('exif.lens')}
                             value={formattedExifData.lens}
                           />
                         )
                   )}
                   {formattedExifData.focalLength && (
-                    <Row label={t('exif.focal.length.actual')} value={`${formattedExifData.focalLength}mm`} />
+                    <Row
+                      icon={<FocalLengthIcon className={rowIconClassName} />}
+                      label={t('exif.focal.length.actual')}
+                      value={`${formattedExifData.focalLength}mm`}
+                    />
                   )}
                   {formattedExifData.maxAperture && (
-                    <Row label={t('exif.max.aperture')} value={`f/${formattedExifData.maxAperture}`} />
+                    <Row
+                      icon={<TablerAperture className={rowIconClassName} />}
+                      label={t('exif.max.aperture')}
+                      value={`f/${formattedExifData.maxAperture}`}
+                    />
                   )}
                 </ExifRowGroup>
               </ExifSection>
