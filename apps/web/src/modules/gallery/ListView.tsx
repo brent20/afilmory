@@ -180,13 +180,19 @@ const PhotoCard = ({ photo }: { photo: PhotoManifest }) => {
 
           {/* 元数据行 */}
           <div className="space-y-1.5 text-[11px] leading-tight text-white/60 lg:text-xs">
-            {/* 位置 */}
-            {photo.location && (
-              <div className="flex items-center gap-1">
-                <MapPin className="size-2.5" />
-                <span className="truncate">{photo.location.locationName}</span>
-              </div>
-            )}
+
+{/* 位置 */}
+{(() => {
+  const place = [photo.location?.city, photo.location?.state, photo.location?.country]
+    .filter(Boolean)
+    .join(', ')
+  return place ? (
+    <div className="flex items-center gap-1">
+      <MapPin className="size-2.5" />
+      <span className="truncate">{place}</span>
+    </div>
+  ) : null
+})()}
 
             {/* 日期 */}
             <div className="flex items-center gap-1">
