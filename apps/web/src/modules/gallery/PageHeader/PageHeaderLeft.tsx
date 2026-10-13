@@ -1,12 +1,37 @@
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
+import { useSetAtom } from 'jotai'
+import type { MouseEvent } from 'react'
+import { Link } from 'react-router'
 
+import { gallerySettingAtom } from '~/atoms/app'
 import { siteConfig } from '~/config'
 import { usePhotos } from '~/hooks/usePhotoViewer'
+import { useScrollGalleryToTop } from '~/hooks/useScrollGalleryToTop'
 
 import { resolveSocialUrl, SocialIconButton } from './utils'
 
 export const PageHeaderLeft = () => {
   const visiblePhotoCount = usePhotos().length
+  const setGallerySetting = useSetAtom(gallerySettingAtom)
+  const scrollToTop = useScrollGalleryToTop()
+
+  // Clicking the site title clears every filter and returns to the start of the landing gallery.
+  // The Link itself takes care of going to "/" (which also closes the photo viewer or map).
+  const handleTitleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    // Leave "open in new tab" style clicks alone.
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+    setGallerySetting((prev) => ({
+      ...prev,
+      selectedTags: [],
+      selectedCameras: [],
+      selectedLenses: [],
+      selectedRatings: null,
+      selectedDateRange: null,
+      tagFilterMode: 'union',
+    }))
+    scrollToTop()
+  }
 
   const githubUrl =
     siteConfig.social && siteConfig.social.github
@@ -41,7 +66,11 @@ export const PageHeaderLeft = () => {
         </div>
       )}
       <div className="flex items-center gap-1.5">
-        <h1 className="truncate text-sm font-semibold text-white lg:text-base">{siteConfig.name}</h1>
+        <h1 className="truncate text-sm font-semibold text-white lg:text-base">
+          <Link to="/" onClick={handleTitleClick} className="transition-opacity duration-200 hover:opacity-70">
+            {siteConfig.name}
+          </Link>
+        </h1>
         <span className="text-xs text-white/40 lg:text-sm">{visiblePhotoCount}</span>
       </div>
       <div className="ml-1 hidden items-center gap-1 border-l border-white/10 pl-2 lg:flex">
