@@ -15,6 +15,7 @@ import type { BuilderPlugin } from './types.js'
 const PLUGIN_NAME = 'afilmory:geocoding'
 const RUN_STATE_KEY = 'geocodingState'
 const DEFAULT_CACHE_PRECISION = 4
+const DEFAULT_EXCLUDED_COUNTRIES = ['United States', 'United States of America', 'USA', 'US', 'U.S.']
 
 interface GeocodingPluginOptions {
   enable?: boolean
@@ -23,21 +24,34 @@ interface GeocodingPluginOptions {
   nominatimBaseUrl?: string
   cachePrecision?: number
   /**
+   * User-Agent sent to Nominatim. Nominatim asks every app to identify itself, e.g.
+   * "my-photo-site/1.0 (https://example.com)"; generic agents can get blocked.
+   */
+  userAgent?: string
+  /**
    * Preferred languages for geocoding results (BCP47). Accepts comma-separated string or array.
    */
   language?: string | string[]
+  /**
+   * Countries that should NOT be added as tags (e.g. your home country). Case-insensitive.
+   * Defaults to the United States. The country is still saved in the photo's location data.
+   */
+  excludeCountries?: string[]
 }
 type GeocodingPluginOptionsResolved = Required<Pick<GeocodingPluginOptions, 'enable' | 'provider'>> &
-  Pick<GeocodingPluginOptions, 'mapboxToken' | 'nominatimBaseUrl' | 'cachePrecision'> & {
+  Pick<GeocodingPluginOptions, 'mapboxToken' | 'nominatimBaseUrl' | 'cachePrecision' | 'userAgent'> & {
     language: string | null
+    excludeCountries: string[]
   }
 
 interface ResolvedGeocodingSettings {
   provider: 'mapbox' | 'nominatim' | 'auto'
   mapboxToken?: string
   nominatimBaseUrl?: string
+  userAgent?: string
   cachePrecision: number
   language: string | null
+  excludeCountries: string[]
 }
 
 interface GeocodingState {
@@ -69,12 +83,19 @@ function normalizeLanguage(value: string | string[] | undefined): string | null 
   return normalized.length > 0 ? normalized.join(',') : null
 }
 
+function normalizeCountryList(value: string[] | undefined): string[] {
+  const list = value ?? DEFAULT_EXCLUDED_COUNTRIES
+  return list.map((country) => country.trim().toLowerCase()).filter(Boolean)
+}
+
 function resolveSettings(options: GeocodingPluginOptions): GeocodingPluginOptionsResolved {
   return {
+    excludeCountries: normalizeCountryList(options.excludeCountries),
     enable: options.enable ?? false,
     provider: options.provider ?? 'auto',
     mapboxToken: options.mapboxToken,
     nominatimBaseUrl: options.nominatimBaseUrl,
+    userAgent: options.userAgent?.trim() || undefined,
     cachePrecision: normalizeCachePrecision(options.cachePrecision ?? DEFAULT_CACHE_PRECISION),
     language: normalizeLanguage(options.language),
   }
@@ -96,7 +117,7 @@ function getOrCreateState(runShared: Map<string, unknown>): GeocodingState {
 }
 
 function buildProviderKey(settings: ResolvedGeocodingSettings): string {
-  return `${settings.provider}:${settings.mapboxToken ?? ''}:${settings.nominatimBaseUrl ?? ''}:${settings.language ?? ''}`
+  return `${settings.provider}:${settings.mapboxToken ?? ''}:${settings.nominatimBaseUrl ?? ''}:${settings.userAgent ?? ''}:${settings.language ?? ''}`
 }
 
 function ensureProvider(
@@ -118,6 +139,7 @@ function ensureProvider(
     settings.mapboxToken,
     settings.nominatimBaseUrl,
     settings.language ?? undefined,
+    settings.userAgent,
   )
 
   if (!provider) {
@@ -153,6 +175,17 @@ async function ensurePhotoContext<T>(builder: AfilmoryBuilder, logger: Logger, f
       fn,
     )
   }
+}
+
+/** Add country, state and a single clean city name to the photo's tags. */
+function addLocationTags(item: PhotoManifestItem, location: LocationInfo, excludeCountries: string[]): void {
+  const isExcluded = (tag: string): boolean => excludeCountries.includes(tag.trim().toLowerCase())
+  const locationTags = [location.country, location.state, location.cityName || location.city].filter(
+    (tag): tag is string => !!tag && !isExcluded(tag),
+  )
+  // Also drop any excluded country already on the photo, so a rebuild cleans up old tags.
+  const existingTags = (item.tags || []).filter((tag) => !isExcluded(tag))
+  item.tags = [...new Set([...existingTags, ...locationTags])]
 }
 
 function buildCacheKey(latitude: number, longitude: number, precision: number): string {
@@ -191,6 +224,7 @@ async function resolveLocationForItem(
   if (cached !== undefined) {
     if (cached) {
       item.location = cached
+      addLocationTags(item, cached, settings.excludeCountries)
       return { attempted: true, updated: true }
     }
     if (shouldOverwriteExisting) {
@@ -204,6 +238,7 @@ async function resolveLocationForItem(
 
   if (location) {
     item.location = location
+    addLocationTags(item, location, settings.excludeCountries)
     return { attempted: true, updated: true }
   }
 
@@ -226,8 +261,10 @@ export default function geocodingPlugin(options: GeocodingPluginOptions = {}): B
           provider: normalizedOptions.provider,
           mapboxToken: normalizedOptions.mapboxToken,
           nominatimBaseUrl: normalizedOptions.nominatimBaseUrl,
+          userAgent: normalizedOptions.userAgent,
           cachePrecision: normalizedOptions.cachePrecision ?? DEFAULT_CACHE_PRECISION,
           language: normalizedOptions.language,
+          excludeCountries: normalizedOptions.excludeCountries,
         }
       },
       afterPhotoProcess: async ({ builder, payload, runShared, logger }) => {
