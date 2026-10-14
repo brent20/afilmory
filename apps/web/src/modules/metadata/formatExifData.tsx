@@ -211,8 +211,23 @@ export const formatExifData = (exif: PickedExif | null) => {
   // 最大光圈
   const maxAperture = exif.MaxApertureValue
 
-  // 相机信息
-  const camera = exif.Make && exif.Model ? `${exif.Make} ${exif.Model}` : null
+  // 相机信息 - 如果型号已包含厂商名（如 Canon / "Canon EOS 5D Mark III"），不再重复拼接
+  const camera = (() => {
+    const make = exif.Make?.trim()
+    const model = exif.Model?.trim()
+    if (!make || !model) return null
+
+    const makeLower = make.toLowerCase()
+    const modelLower = model.toLowerCase()
+    // Some makers use a long legal name (e.g. "NIKON CORPORATION" / "NIKON D850"),
+    // so also compare against the first word of the make.
+    const makeFirstWord = makeLower.split(/\s+/)[0]
+
+    if (modelLower.startsWith(makeLower) || modelLower.startsWith(makeFirstWord)) {
+      return model
+    }
+    return `${make} ${model}`
+  })()
 
   // 镜头信息 - 包含制造商
   const lens = (() => {
