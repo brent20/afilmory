@@ -216,16 +216,7 @@ const PhotoCard = ({ photo }: { photo: PhotoManifest }) => {
               </div>
             )}
 
-            {/* 尺寸 */}
-            <div className="flex items-center gap-1">
-              <ImageIcon className="size-2.5" />
-              <span>
-                {photo.width}
-                {' '}
-                x
-                {photo.height}
-              </span>
-            </div>
+            {/* 尺寸 (removed): re-add <ImageIcon /> + {photo.width} x {photo.height} here if needed */}
           </div>
 
           {/* 摄影三要素 + 焦距 - 简洁样式 */}
