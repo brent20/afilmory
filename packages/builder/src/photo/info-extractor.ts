@@ -82,6 +82,15 @@ export function extractPhotoInfo(key: string, exifData?: PickedExif | null): Pho
     title = path.posix.basename(keyForParsing, extname)
   }
 
+  // A title set in Lightroom (XMP Title / IPTC Title) always wins over the filename and AI titles.
+  const embeddedTitle = [exifData?.Title, exifData?.ObjectName]
+    .find((value): value is string => typeof value === 'string' && value.trim().length > 0)
+    ?.trim()
+  if (embeddedTitle) {
+    title = embeddedTitle
+    log.info(`使用 Lightroom 标题："${embeddedTitle}"`)
+  }
+
   log.info(`照片信息提取完成："${title}"`)
 
   return {
