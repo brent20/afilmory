@@ -20,14 +20,24 @@ const MAX_CONSECUTIVE_FAILURES = 3
 
 export const BLACK_AND_WHITE_TAG = 'Black & White'
 
-const TITLE_MAX_WORDS = 6
-const TITLE_MAX_LENGTH = 60
+// Bump when the title prompt changes: every saved AI title is then regenerated once.
+const TITLE_PROMPT_VERSION = 3
+const TITLE_MAX_WORDS = 8
+const TITLE_MAX_LENGTH = 70
 /** Example titles used in the prompt. If the model copies one, it is rejected and retried on a later build. */
-const EXAMPLE_TITLES = ['quiet harbor', 'amber hours', 'stillness', 'concrete bloom', 'where the light lands', 'distant weather']
+const EXAMPLE_TITLES = [
+  'fog-wrapped pier at dawn',
+  'red door in weathered brick',
+  'cyclist cutting through neon',
+  'lone tree holding the horizon',
+  'rain-slicked street after midnight',
+  'ferry crossing in silver light',
+]
 const TITLE_INSTRUCTIONS = [
-  'The title must be abstract and evocative: capture the mood, light or feeling of the photo rather than listing what is in it.',
-  'Use 1 to 4 words in Title Case, with no quotes and no punctuation. Never include place names, dates, camera terms, or the words Photo, Image, Picture or Untitled.',
-  'The style is like these examples (never reuse them): Quiet Harbor, Amber Hours, Stillness, Concrete Bloom, Where the Light Lands.',
+  'The title must be plain and specific: name the main subject and one vivid detail such as its light, weather, color, setting or action.',
+  'Use 3 to 6 words in Title Case. Colorful adjectives and active verbs are welcome, but describe what is actually visible rather than inventing a mood or story.',
+  'No quotes or ending punctuation. Do not include place names unless they are readable in the photo, and never use dates, camera terms, or the words Photo, Image, Picture or Untitled.',
+  'The style is like these examples (never reuse them): Fog-Wrapped Pier at Dawn, Red Door in Weathered Brick, Cyclist Cutting Through Neon, Lone Tree Holding the Horizon, Rain-Slicked Street After Midnight.',
 ]
 
 // Color detection thresholds. Chroma = max(R,G,B) - min(R,G,B) per pixel (0-255).
@@ -133,6 +143,8 @@ interface Job {
 
 interface TagCache {
   version: number
+  /** Which title prompt wrote the titles; when the prompt changes the titles are regenerated. */
+  titleVersion?: number
   settingsHash: string
   /** Keyed by the photo's file path in storage, e.g. "2024/IMG_1234.jpg". */
   entries: Record<string, TagCacheEntry>
@@ -184,7 +196,7 @@ export function buildCombinedPrompt(vocabulary: string[], maxTags: number): stri
     'Only choose a tag if its subject is clearly visible in the photo. Fewer accurate tags are better than many guesses.',
     'Then give the photo a title.',
     ...TITLE_INSTRUCTIONS,
-    'Reply with only a JSON object, for example {"tags":["Landscape","Mountains"],"title":"Distant Weather"}. Do not add any other text.',
+    'Reply with only a JSON object, for example {"tags":["Landscape","Mountains"],"title":"Ferry Crossing in Silver Light"}. Do not add any other text.',
   ].join('\n')
 }
 
@@ -193,7 +205,7 @@ export function buildTitlePrompt(): string {
   return [
     'You are titling a photo for a photography portfolio.',
     ...TITLE_INSTRUCTIONS,
-    'Reply with only a JSON object, for example {"title":"Distant Weather"}. Do not add any other text.',
+    'Reply with only a JSON object, for example {"title":"Ferry Crossing in Silver Light"}. Do not add any other text.',
   ].join('\n')
 }
 
@@ -494,6 +506,14 @@ export default function aiTaggingPlugin(options: AiTaggingPluginOptions = {}): B
           } catch (error) {
             log.warn(`Could not read tag cache, starting fresh: ${String(error)}`)
           }
+          // The title style changed: drop the saved AI titles so they are regenerated (tags are kept).
+          if (generateTitles && cache.titleVersion !== TITLE_PROMPT_VERSION) {
+            const stale = Object.values(cache.entries).filter((entry) => entry.title).length
+            if (stale > 0) log.info(`Title style changed: regenerating ${stale} AI titles`)
+            for (const entry of Object.values(cache.entries)) delete entry.title
+          }
+          cache.titleVersion = TITLE_PROMPT_VERSION
+
           // Titles survive a forced re-tag: an accepted title should not change because tags are redone.
           const previousTitles = new Map<string, string>()
           for (const [key, entry] of Object.entries(cache.entries)) {
@@ -501,7 +521,7 @@ export default function aiTaggingPlugin(options: AiTaggingPluginOptions = {}): B
           }
           if (options.forceRetag) {
             log.info('Re-tag requested: ignoring cached tags')
-            cache = { version: CACHE_VERSION, settingsHash, entries: {} }
+            cache = { version: CACHE_VERSION, settingsHash, titleVersion: TITLE_PROMPT_VERSION, entries: {} }
           }
 
           // Every title already in use (AI titles and Lightroom titles) so new ones can be made unique.
