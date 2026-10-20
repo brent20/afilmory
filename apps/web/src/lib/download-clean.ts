@@ -110,51 +110,76 @@ function readExifIdentity(
  * Read the additional metadata from an XMP APP1 payload.
  * The original XMP is discarded after its supported fields are extracted.
  */
-function readXmpIdentity(
-  data: Uint8Array,
-  payloadStart: number,
-  payloadEnd: number,
-): Partial<Identity> {
-  const header = 'http://ns.adobe.com/xap/1.0/\0'
-  if (!startsWith(data, payloadStart, header)) return {}
 
-  const xml = decodeText(
-    data.subarray(payloadStart + header.length, payloadEnd),
+function buildXmpSegment({
+  artist,
+  copyright,
+  creatorEmail,
+  usageTerms,
+  copyrightInfoUrl,
+}: Identity): Uint8Array | null {
+  if (
+    !artist
+    && !copyright
+    && !creatorEmail
+    && !usageTerms
+    && !copyrightInfoUrl
+  ) {
+    return null
+  }
+
+  const creator = artist
+    ? '<dc:creator><rdf:Seq><rdf:li>'
+      + `${escapeXml(artist)}`
+      + '</rdf:li></rdf:Seq></dc:creator>'
+    : ''
+
+  const rights = copyright
+    ? '<dc:rights><rdf:Alt>'
+      + `<rdf:li xml:lang="x-default">${escapeXml(copyright)}</rdf:li>`
+      + '</rdf:Alt></dc:rights>'
+      + '<xmpRights:Marked>True</xmpRights:Marked>'
+    : ''
+
+  const email = creatorEmail
+    ? '<Iptc4xmpCore:CreatorContactInfo>'
+      + `<Iptc4xmpCore:CiEmailWork>${escapeXml(creatorEmail)}</Iptc4xmpCore:CiEmailWork>`
+      + '</Iptc4xmpCore:CreatorContactInfo>'
+    : ''
+
+  const terms = usageTerms
+    ? '<xmpRights:UsageTerms><rdf:Alt>'
+      + `<rdf:li xml:lang="x-default">${escapeXml(usageTerms)}</rdf:li>`
+      + '</rdf:Alt></xmpRights:UsageTerms>'
+    : ''
+
+  const webStatement = copyrightInfoUrl
+    ? `<xmpRights:WebStatement>${escapeXml(copyrightInfoUrl)}</xmpRights:WebStatement>`
+    : ''
+
+  const copyrightUrl = copyrightInfoUrl
+    ? `<photoshop:CopyrightInfoURL>${escapeXml(copyrightInfoUrl)}</photoshop:CopyrightInfoURL>`
+    : ''
+
+  const xmp =
+    '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>'
+    + '<x:xmpmeta xmlns:x="adobe:ns:meta/">'
+    + '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+    + '<rdf:Description rdf:about=""'
+    + ' xmlns:dc="http://purl.org/dc/elements/1.1/"'
+    + ' xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/"'
+    + ' xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/"'
+    + ' xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/">'
+    + `${creator}${rights}${email}${terms}${webStatement}${copyrightUrl}`
+    + '</rdf:Description></rdf:RDF></x:xmpmeta>'
+    + '<?xpacket end="w"?>'
+
+  return buildApp1(
+    textEncoder.encode('http://ns.adobe.com/xap/1.0/\0'),
+    textEncoder.encode(xmp),
   )
-
-  try {
-    const doc = new DOMParser().parseFromString(
-      xml,
-      'application/xml',
-    )
-
-    if (doc.getElementsByTagName('parsererror').length > 0) {
-      return {}
-    }
-
-    const get = (namespace: string, name: string) =>
-      doc.getElementsByTagNameNS(namespace, name)[0]
-        ?.textContent?.trim() || undefined
-
-    return {
-      creatorEmail: get(
-        'http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/',
-        'CiEmailWork',
-      ),
-      usageTerms: get(
-        'http://ns.adobe.com/xap/1.0/rights/',
-        'UsageTerms',
-      ),
-      copyrightInfoUrl: get(
-        'http://ns.adobe.com/xap/1.0/rights/',
-        'WebStatement',
-      ),
-    }
-  }
-  catch {
-    return {}
-  }
 }
+
 
 /** Build a minimal EXIF APP1 segment. */
 function buildExifSegment({
