@@ -2,7 +2,8 @@
 /**
  * Download an original photo with its metadata removed, keeping only:
  *   - creator (Artist) and copyright in EXIF and XMP
- *   - creator email, copyright usage terms, and copyright info URL in XMP
+ *   - creator email and contact website in XMP
+ *   - copyright usage terms in XMP
  *   - orientation, so the photo is never displayed rotated incorrectly
  *   - ICC colour profile and basic JPEG headers
  *
@@ -16,8 +17,8 @@ interface Identity {
   artist?: string
   copyright?: string
   creatorEmail?: string
+  creatorWebsite?: string
   usageTerms?: string
-  copyrightInfoUrl?: string
   orientation?: number
 }
 
@@ -116,8 +117,7 @@ function readExifIdentity(
 
 /**
  * Read supported properties from a standard XMP APP1 segment.
- * Both namespace-aware lookup and local-name lookup are used
- * for compatibility with different XMP serialization styles.
+ * Supports XMP values represented as XML elements or attributes.
  */
 function readXmpIdentity(
   data: Uint8Array,
@@ -146,14 +146,23 @@ function readXmpIdentity(
       doc.getElementsByTagNameNS(namespace, name)[0]
         ?.textContent?.trim() || undefined
 
+    // Some software serializes these properties as XML elements;
+    // other XMP representations may expose them as attributes.
     const getByLocalName = (name: string) => {
       for (const element of Array.from(
         doc.getElementsByTagName('*'),
       )) {
-        if (element.localName !== name) continue
+        if (element.localName === name) {
+          const value = element.textContent?.trim()
+          if (value) return value
+        }
 
-        const value = element.textContent?.trim()
-        if (value) return value
+        for (const attribute of Array.from(element.attributes)) {
+          if (attribute.localName !== name) continue
+
+          const value = attribute.value.trim()
+          if (value) return value
+        }
       }
 
       return undefined
@@ -165,25 +174,18 @@ function readXmpIdentity(
     const rightsNamespace =
       'http://ns.adobe.com/xap/1.0/rights/'
 
-    const photoshopNamespace =
-      'http://ns.adobe.com/photoshop/1.0/'
-
     return {
       creatorEmail:
         get(iptcNamespace, 'CiEmailWork')
         || getByLocalName('CiEmailWork'),
 
+      creatorWebsite:
+        get(iptcNamespace, 'CiUrlWork')
+        || getByLocalName('CiUrlWork'),
+
       usageTerms:
         get(rightsNamespace, 'UsageTerms')
         || getByLocalName('UsageTerms'),
-
-      // Lightroom's Copyright Info URL is Photoshop:CopyrightInfoURL.
-      // WebStatement is also read for compatibility with other software.
-      copyrightInfoUrl:
-        get(photoshopNamespace, 'CopyrightInfoURL')
-        || get(rightsNamespace, 'WebStatement')
-        || getByLocalName('CopyrightInfoURL')
-        || getByLocalName('WebStatement'),
     }
   }
   catch {
@@ -300,15 +302,15 @@ function buildXmpSegment({
   artist,
   copyright,
   creatorEmail,
+  creatorWebsite,
   usageTerms,
-  copyrightInfoUrl,
 }: Identity): Uint8Array | null {
   if (
     !artist
     && !copyright
     && !creatorEmail
+    && !creatorWebsite
     && !usageTerms
-    && !copyrightInfoUrl
   ) {
     return null
   }
@@ -327,12 +329,22 @@ function buildXmpSegment({
       + '<xmpRights:Marked>True</xmpRights:Marked>'
     : ''
 
-  // IPTC CreatorContactInfo contains the CiEmailWork property.
-  const email = creatorEmail
-    ? '<Iptc4xmpCore:CreatorContactInfo>'
-      + '<Iptc4xmpCore:CiEmailWork>'
-      + escapeXml(creatorEmail)
-      + '</Iptc4xmpCore:CiEmailWork>'
+  // Both contact fields belong inside the same CreatorContactInfo structure.
+  const contactFields =
+    (creatorEmail
+      ? '<Iptc4xmpCore:CiEmailWork>'
+        + escapeXml(creatorEmail)
+        + '</Iptc4xmpCore:CiEmailWork>'
+      : '')
+    + (creatorWebsite
+      ? '<Iptc4xmpCore:CiUrlWork>'
+        + escapeXml(creatorWebsite)
+        + '</Iptc4xmpCore:CiUrlWork>'
+      : '')
+
+  const contactInfo = contactFields
+    ? '<Iptc4xmpCore:CreatorContactInfo rdf:parseType="Resource">'
+      + contactFields
       + '</Iptc4xmpCore:CreatorContactInfo>'
     : ''
 
@@ -343,19 +355,6 @@ function buildXmpSegment({
       + '</rdf:li></rdf:Alt></xmpRights:UsageTerms>'
     : ''
 
-  // Write both properties for compatibility.
-  const webStatement = copyrightInfoUrl
-    ? '<xmpRights:WebStatement>'
-      + escapeXml(copyrightInfoUrl)
-      + '</xmpRights:WebStatement>'
-    : ''
-
-  const copyrightUrl = copyrightInfoUrl
-    ? '<photoshop:CopyrightInfoURL>'
-      + escapeXml(copyrightInfoUrl)
-      + '</photoshop:CopyrightInfoURL>'
-    : ''
-
   const xmp =
     '<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>'
     + '<x:xmpmeta xmlns:x="adobe:ns:meta/">'
@@ -363,9 +362,8 @@ function buildXmpSegment({
     + '<rdf:Description rdf:about=""'
     + ' xmlns:dc="http://purl.org/dc/elements/1.1/"'
     + ' xmlns:xmpRights="http://ns.adobe.com/xap/1.0/rights/"'
-    + ' xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/"'
     + ' xmlns:Iptc4xmpCore="http://iptc.org/std/Iptc4xmpCore/1.0/xmlns/">'
-    + `${creator}${rights}${email}${terms}${webStatement}${copyrightUrl}`
+    + `${creator}${rights}${contactInfo}${terms}`
     + '</rdf:Description></rdf:RDF></x:xmpmeta>'
     + '<?xpacket end="w"?>'
 
@@ -457,8 +455,8 @@ export function cleanJpeg(
         const found = readXmpIdentity(input, payload, end)
 
         identity.creatorEmail ??= found.creatorEmail
+        identity.creatorWebsite ??= found.creatorWebsite
         identity.usageTerms ??= found.usageTerms
-        identity.copyrightInfoUrl ??= found.copyrightInfoUrl
       }
 
       // Remove original EXIF/XMP after extracting supported fields.
@@ -493,9 +491,8 @@ export function cleanJpeg(
     artist: identity.artist ?? fallback.artist,
     copyright: identity.copyright ?? fallback.copyright,
     creatorEmail: identity.creatorEmail ?? fallback.creatorEmail,
+    creatorWebsite: identity.creatorWebsite ?? fallback.creatorWebsite,
     usageTerms: identity.usageTerms ?? fallback.usageTerms,
-    copyrightInfoUrl:
-      identity.copyrightInfoUrl ?? fallback.copyrightInfoUrl,
     orientation: identity.orientation,
   }
 
