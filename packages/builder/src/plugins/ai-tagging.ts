@@ -21,23 +21,29 @@ const MAX_CONSECUTIVE_FAILURES = 3
 export const BLACK_AND_WHITE_TAG = 'Black & White'
 
 // Bump when the title prompt changes: every saved AI title is then regenerated once.
-const TITLE_PROMPT_VERSION = 3
-const TITLE_MAX_WORDS = 8
-const TITLE_MAX_LENGTH = 70
+const TITLE_PROMPT_VERSION = 4
+const TITLE_MAX_WORDS = 5
+const TITLE_MAX_LENGTH = 40
 /** Example titles used in the prompt. If the model copies one, it is rejected and retried on a later build. */
 const EXAMPLE_TITLES = [
-  'fog-wrapped pier at dawn',
-  'red door in weathered brick',
-  'cyclist cutting through neon',
-  'lone tree holding the horizon',
-  'rain-slicked street after midnight',
-  'ferry crossing in silver light',
+  'pier, early',
+  'door number nine',
+  'after the rain stopped',
+  'one tree',
+  'last tram home',
+  'closed for the season',
+  'the long way round',
 ]
+/** Words that make a title read as machine-written. A title containing one is rejected and retried next build. */
+const CLICHE_WORDS =
+  /\b(?:golden|ethereal|whispers?|whispering|dances?|dancing|tapestry|symphony|serene|serenity|timeless|captivating|dreamy|dreamlike|enchanted|enchanting|majestic|mystical|tranquil|tranquility|glimmer(?:ing)?|shimmer(?:ing)?|embrace|embracing|canvas|kaleidoscope|ballet|melody|haven|oasis|reverie|slumber|moments?|echoes?|glow(?:ing)?)\b/i
 const TITLE_INSTRUCTIONS = [
-  'The title must be plain and specific: name the main subject and one vivid detail such as its light, weather, color, setting or action.',
-  'Use 3 to 6 words in Title Case. Colorful adjectives and active verbs are welcome, but describe what is actually visible rather than inventing a mood or story.',
-  'No quotes or ending punctuation. Do not include place names unless they are readable in the photo, and never use dates, camera terms, or the words Photo, Image, Picture or Untitled.',
-  'The style is like these examples (never reuse them): Fog-Wrapped Pier at Dawn, Red Door in Weathered Brick, Cyclist Cutting Through Neon, Lone Tree Holding the Horizon, Rain-Slicked Street After Midnight.',
+  'Write a short, understated title, the way a print is titled in a gallery: 1 to 5 words.',
+  'Either name the subject plainly, or hint at the moment with a small detail such as a time of day, a small action or a quiet object. One idea only, with at most one adjective.',
+  'Use sentence case: capitalize only the first word. No quotes and no ending punctuation; a comma in the middle is fine.',
+  'Avoid poetic filler and clichés, such as golden, ethereal, whisper, dance, tapestry, symphony, serene, timeless, dreamy, glow, moment. Do not pile up adjectives and do not describe the light as a phrase like "in soft light".',
+  'Do not include place names unless they are readable in the photo, and never use dates, camera terms, or the words Photo, Image, Picture or Untitled.',
+  'The style is like these examples, which belong to other photos so never reuse them: Pier, early. Door number nine. After the rain stopped. One tree. Last tram home. Closed for the season.',
 ]
 
 // Color detection thresholds. Chroma = max(R,G,B) - min(R,G,B) per pixel (0-255).
@@ -196,7 +202,7 @@ export function buildCombinedPrompt(vocabulary: string[], maxTags: number): stri
     'Only choose a tag if its subject is clearly visible in the photo. Fewer accurate tags are better than many guesses.',
     'Then give the photo a title.',
     ...TITLE_INSTRUCTIONS,
-    'Reply with only a JSON object, for example {"tags":["Landscape","Mountains"],"title":"Ferry Crossing in Silver Light"}. Do not add any other text.',
+    'Reply with only a JSON object, for example {"tags":["Landscape","Mountains"],"title":"The long way round"}. Do not add any other text.',
   ].join('\n')
 }
 
@@ -205,11 +211,17 @@ export function buildTitlePrompt(): string {
   return [
     'You are titling a photo for a photography portfolio.',
     ...TITLE_INSTRUCTIONS,
-    'Reply with only a JSON object, for example {"title":"Ferry Crossing in Silver Light"}. Do not add any other text.',
+    'Reply with only a JSON object, for example {"title":"The long way round"}. Do not add any other text.',
   ].join('\n')
 }
 
-/** Tidy up a title from the model; returns null if it is unusable (too long, generic, or a copied example). */
+/** Sentence case: first letter capitalized, the rest lowercase, but "I" and "I'm" stay capital. */
+function toSentenceCase(title: string): string {
+  const lowered = title.charAt(0).toUpperCase() + title.slice(1).toLowerCase()
+  return lowered.replaceAll(/\bi\b(?=$|\s|')/g, 'I')
+}
+
+/** Tidy up a title from the model; returns null if it is unusable (too long, generic, cliché, or a copied example). */
 export function cleanTitle(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
   const title = raw
@@ -221,8 +233,9 @@ export function cleanTitle(raw: unknown): string | null {
   if (!title || title.length > TITLE_MAX_LENGTH) return null
   if (title.split(' ').length > TITLE_MAX_WORDS) return null
   if (/^(?:untitled|photo|image|picture)$/i.test(title)) return null
+  if (CLICHE_WORDS.test(title)) return null
   if (EXAMPLE_TITLES.includes(title.toLowerCase())) return null
-  return title
+  return toSentenceCase(title)
 }
 
 /** Read a reply to the combined prompt: tags drawn from the vocabulary plus a cleaned title. */
