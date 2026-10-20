@@ -23,6 +23,7 @@ apps/web/src/data/photos-manifest.json
 apps/web/public/thumbnails
 apps/web/public/photos
 apps/web/public/originals
+apps/web/public/_s
 
 # variant cluster report (pnpm build:variant-report)
 cluster-report.html

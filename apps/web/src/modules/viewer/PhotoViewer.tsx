@@ -38,6 +38,7 @@ import { resolvePhotoViewerEntryState, shouldHideCurrentViewerImage } from './en
 import { GalleryThumbnail } from './GalleryThumbnail'
 import { MobilePhotoInspectorSheet } from './MobilePhotoInspectorSheet'
 import { getRenderablePhotoRegions } from './photo-region-bounds'
+import { PrivateDownloadButton } from './PrivateDownloadButton'
 import { ProgressiveImage } from './ProgressiveImage'
 
 interface PhotoViewerProps {
@@ -510,6 +511,13 @@ export const PhotoViewer = ({
                             <PanelRightOpen className="size-4" />
                           </ActionButton>
                         )}
+
+                        {/* 下载按钮 - 仅私密分享页面显示 */}
+                        <PrivateDownloadButton
+                          photo={currentPhoto}
+                          disabled={!isMobileChromeInteractive}
+                          className={mobileChromeButtonClassName}
+                        />
 
                         {/* 关闭按钮 */}
                         <ActionButton

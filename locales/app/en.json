@@ -396,6 +396,8 @@
   "photo.copy.success": "Image copied to clipboard",
   "photo.copying": "Copying image...",
   "photo.download": "Download Image",
+  "photo.downloadError": "Download failed. Please try again.",
+  "photo.downloadUnstripped": "Downloaded the original file. Its metadata could not be removed for this file type.",
   "photo.error.loading": "Failed to load image",
   "photo.live.badge": "Live",
   "photo.live.converting.detail": "Converting video format using {{method}}...",
