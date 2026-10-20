@@ -245,6 +245,10 @@ export interface PickedExif {
   WeightedFlatSubject?: string[]
   HierarchicalSubject?: string[]
   RegionInfo?: ExiftoolXmpRegionInfo
+
+  // Title written in Lightroom (XMP Title / IPTC Title); overrides the filename and AI titles
+  Title?: string
+  ObjectName?: string
 }
 
 export type FujiRecipe = {
