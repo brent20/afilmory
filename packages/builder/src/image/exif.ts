@@ -157,6 +157,9 @@ const pickKeys: Array<keyof Tags | (string & {})> = [
   'WeightedFlatSubject',
   'HierarchicalSubject',
   'RegionInfo',
+  // Title set in Lightroom (XMP / IPTC)
+  'Title',
+  'ObjectName',
 ]
 
 export function extractXmpMetadataFromExif(exifData: PickedExif | null | undefined): PhotoXmpMetadata {
