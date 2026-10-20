@@ -10,6 +10,7 @@ import { useContextPhotos } from '~/hooks/usePhotoViewer'
 import { useVisiblePhotosDateRange } from '~/hooks/useVisiblePhotosDateRange'
 import { trackEvent } from '~/lib/analytics'
 import { COLLECTIONS_ENABLED } from '~/lib/collections'
+import { isPrivateShare } from '~/lib/private-share'
 import {
   GALLERY_BATCH_SIZE,
   GALLERY_ROOMY_LAYOUT,
@@ -55,9 +56,12 @@ export const PhotosRoot = () => {
     setFirstVisibleIndex(0)
   }, [photosKey])
 
+  // Private share pages show every photo at once, with no "Show more" button.
+  const paginate = GALLERY_SHOW_MORE && !isPrivateShare()
+
   const photos = useMemo(
-    () => (GALLERY_SHOW_MORE ? allPhotos.slice(0, visibleCount) : allPhotos),
-    [allPhotos, visibleCount],
+    () => (paginate ? allPhotos.slice(0, visibleCount) : allPhotos),
+    [allPhotos, visibleCount, paginate],
   )
   const remaining = allPhotos.length - photos.length
 
@@ -140,7 +144,7 @@ export const PhotosRoot = () => {
           <MasonryView photos={photos} onRender={handleRender} scrollToIndex={jumpTarget} />
         )}
 
-        {GALLERY_SHOW_MORE && remaining > 0 && (
+        {paginate && remaining > 0 && (
           <div className="mt-12 flex justify-center">
             <button
               type="button"
