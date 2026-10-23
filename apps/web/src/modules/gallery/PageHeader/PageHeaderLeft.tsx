@@ -77,13 +77,15 @@ export const PageHeaderLeft = () => {
         {githubUrl && <SocialIconButton icon="i-mingcute-github-fill" title="GitHub" href={githubUrl} />}
         {twitterUrl && <SocialIconButton icon="i-mingcute-twitter-fill" title="Twitter" href={twitterUrl} />}
         {hasRss && <SocialIconButton icon="i-mingcute-rss-2-fill" title="RSS" href="/feed.xml" />}
-        {contactUrl && <SocialIconButton icon="i-mingcute-mail-fill" title="Contact" href={contactUrl} />}
-        <Link
-          to="/work"
-          className="ml-1 rounded-md bg-white/10 px-2 py-1 text-xs font-medium text-white transition-colors hover:bg-white/20"
-        >
-          Work together
-        </Link>
+        {contactUrl && (
+          <a
+            href="/work"
+            className="inline-flex size-6 items-center justify-center rounded text-white/40 transition-colors duration-200 hover:text-white/80 lg:size-7"
+            title="Contact"
+          >
+            <i className="i-mingcute-mail-fill text-sm lg:text-base" />
+          </a>
+        )}
         {usageUrl && <SocialIconButton icon="i-mingcute-information-fill" title="Usage info" href={usageUrl} />}
       </div>
     </div>
