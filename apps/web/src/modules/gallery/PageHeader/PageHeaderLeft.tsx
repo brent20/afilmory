@@ -78,13 +78,13 @@ export const PageHeaderLeft = () => {
         {twitterUrl && <SocialIconButton icon="i-mingcute-twitter-fill" title="Twitter" href={twitterUrl} />}
         {hasRss && <SocialIconButton icon="i-mingcute-rss-2-fill" title="RSS" href="/feed.xml" />}
         {contactUrl && (
-          <a
-            href="/work"
+          <Link
+            to="/work"
             className="inline-flex size-6 items-center justify-center rounded text-white/40 transition-colors duration-200 hover:text-white/80 lg:size-7"
             title="Contact"
           >
             <i className="i-mingcute-mail-fill text-sm lg:text-base" />
-          </a>
+          </Link>
         )}
         {usageUrl && <SocialIconButton icon="i-mingcute-information-fill" title="Usage info" href={usageUrl} />}
       </div>
