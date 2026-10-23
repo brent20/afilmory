@@ -10,7 +10,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { LogIn, LogOut, User, BarChart3 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { Drawer } from 'vaul'
 
 import { gallerySettingAtom, isCommandPaletteOpenAtom } from '~/atoms/app'
@@ -183,10 +183,10 @@ const MoreActionMenu = () => {
         )}
         {contactUrl && (
           <DropdownMenuItem asChild>
-            <a href="/work" className="flex items-center gap-2">
+            <Link to="/work" className="flex items-center gap-2">
               <i className="i-mingcute-mail-fill text-base" />
               Contact
-            </a>
+            </Link>
           </DropdownMenuItem>
         )}
         {usageUrl && (
