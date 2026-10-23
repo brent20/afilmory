@@ -83,10 +83,10 @@ export const Component = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <div className="mx-auto max-w-6xl px-5 pt-20 pb-14 sm:px-8 sm:pt-24 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-8 sm:pt-24 sm:pb-20">
           {/* Same back button as the map page */}
           <GlassButton
-            className="mb-8"
+            className="mb-6 sm:mb-8"
             onClick={() => startTransition(() => navigate('/'))}
             title={t('explory.back.to.gallery')}
             aria-label={t('explory.back.to.gallery')}
@@ -94,30 +94,25 @@ export const Component = () => {
             <i className="i-mingcute-arrow-left-line text-base text-white" aria-hidden="true" />
           </GlassButton>
 
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-14">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-14">
             {/* Left: intro + contact. Stays in view on desktop while the right side scrolls. */}
             <div className="lg:sticky lg:top-24 lg:self-start">
-              {avatarUrl && (
-                <div className="mb-5 flex items-center gap-3">
-                  <img
-                    src={avatarUrl}
-                    alt={siteConfig.author.name}
-                    decoding="async"
-                    className="ring-fill-tertiary size-16 rounded-full object-cover ring-1 ring-offset-2 ring-offset-transparent"
-                  />
-                  <div className="leading-tight">
-                    <p className="text-sm font-medium">{siteConfig.name}</p>
-                    <p className="text-text-tertiary text-xs">Photography</p>
-                  </div>
-                </div>
-              )}
-
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{work.headline}</h1>
               <p className="text-text-secondary mt-4 text-base leading-relaxed">{work.intro}</p>
 
-              <div className="bg-material-medium/40 border-fill-tertiary mt-8 rounded-2xl border p-5">
-                <h2 className="text-lg font-semibold">{work.contactHeading}</h2>
-                <p className="text-text-secondary mt-2 text-sm leading-relaxed">{work.contactText}</p>
+              <div className="bg-material-medium/40 border-fill-tertiary mt-6 rounded-2xl border p-5 sm:mt-8">
+                <div className="flex items-center gap-3">
+                  {avatarUrl && (
+                    <img
+                      src={avatarUrl}
+                      alt={siteConfig.author.name}
+                      decoding="async"
+                      className="ring-fill-tertiary size-12 shrink-0 rounded-full object-cover ring-1"
+                    />
+                  )}
+                  <h2 className="text-lg font-semibold">{work.contactHeading}</h2>
+                </div>
+                <p className="text-text-secondary mt-4 text-sm leading-relaxed">{work.contactText}</p>
 
                 <div className="mt-4 flex items-center gap-3">
                   <a
