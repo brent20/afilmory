@@ -1,7 +1,7 @@
 import { GlassButton, LinearBlur } from '@afilmory/ui'
 import { useSetAtom } from 'jotai'
 import { m } from 'motion/react'
-import { startTransition, useMemo } from 'react'
+import { startTransition, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -10,7 +10,6 @@ import { siteConfig } from '~/config'
 import work from '~/config/work.json'
 import { useMobile } from '~/hooks/useMobile'
 import { usePhotos } from '~/hooks/usePhotoViewer'
-import { useTitle } from '~/hooks/useTitle'
 import { PageHeaderLeft } from '~/modules/gallery/PageHeader/PageHeaderLeft'
 import { ActionIconButton } from '~/modules/gallery/PageHeader/utils'
 
@@ -56,7 +55,16 @@ const WorkHeader = () => {
 }
 
 export const Component = () => {
-  useTitle('Working together')
+  // Set this page's tab title, and put the gallery's title back when leaving.
+  // (The gallery's own title is built the same way in plugins/vite/seo.ts.)
+  useEffect(() => {
+    const place = [work.location?.city, work.location?.region].filter(Boolean).join(', ')
+    const homeTitle = `${siteConfig.name} | Candid, Landscape & Architecture Photographer${place ? ` in ${place}` : ''}`
+    document.title = `Working together | ${siteConfig.name}`
+    return () => {
+      document.title = homeTitle
+    }
+  }, [])
   const { t } = useTranslation()
   const navigate = useNavigate()
   const photos = usePhotos()
