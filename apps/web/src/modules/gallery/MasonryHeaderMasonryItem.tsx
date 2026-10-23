@@ -115,9 +115,7 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
             )}
             {contactUrl && (
               <a
-                href={contactUrl}
-                target="_blank"
-                rel="noreferrer"
+                href="/work"
                 className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
                 title="Contact"
               >
