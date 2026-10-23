@@ -2,6 +2,7 @@ import { clsxm } from '@afilmory/utils'
 import { repository } from '@pkg'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 
 import { siteConfig } from '~/config'
 import { usePhotos } from '~/hooks/usePhotoViewer'
@@ -114,13 +115,13 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
               </a>
             )}
             {contactUrl && (
-              <a
-                href="/work"
+              <Link
+                to="/work"
                 className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
                 title="Contact"
               >
                 <i className="i-mingcute-mail-fill text-sm" />
-              </a>
+              </Link>
             )}
             {usageUrl && (
               <a
