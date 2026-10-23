@@ -26,6 +26,7 @@ import { localesJsonPlugin } from './plugins/vite/locales-json'
 import { manifestInjectPlugin } from './plugins/vite/manifest-inject'
 import { ogImagePlugin } from './plugins/vite/og-image-plugin'
 import { photosStaticPlugin } from './plugins/vite/photos-static'
+import { createSeoPlugin } from './plugins/vite/seo'
 import { siteConfigInjectPlugin } from './plugins/vite/site-config-inject'
 
 
@@ -151,6 +152,7 @@ const staticWebBuildPlugins: PluginOption[] = [
     siteUrl: siteConfig.url,
   }),
   createFeedSitemapPlugin(siteConfig),
+  createSeoPlugin(siteConfig),
   createHtmlPlugin({
     minify: {
       collapseWhitespace: true,
