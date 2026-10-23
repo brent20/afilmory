@@ -144,7 +144,12 @@ export const Component = () => {
                 {usageUrl && (
                   <p className="text-text-tertiary mt-5 text-xs">
                     Looking to use an existing photo?{' '}
-                    <a href={usageUrl} className="hover:text-text-secondary underline underline-offset-2">
+                    <a
+                      href={usageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-text-secondary underline underline-offset-2"
+                    >
                       Usage &amp; copyright info
                     </a>
                   </p>
