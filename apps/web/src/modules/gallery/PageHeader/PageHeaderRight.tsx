@@ -183,7 +183,7 @@ const MoreActionMenu = () => {
         )}
         {contactUrl && (
           <DropdownMenuItem asChild>
-            <a href={contactUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+            <a href="/work" className="flex items-center gap-2">
               <i className="i-mingcute-mail-fill text-base" />
               Contact
             </a>
