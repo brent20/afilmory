@@ -1,0 +1,36 @@
+{
+  "email": "hello@brentsaltzman.com",
+  "contactUrl": "https://brentsaltzman.com/contact/",
+  "location": {
+    "city": "Omaha",
+    "region": "Nebraska",
+    "country": "US"
+  },
+  "headline": "Working together",
+  "intro": "I photograph buildings, places and unposed moments, the kind of frames that feel found rather than staged. If you have a project in mind and think my work might be a fit, I'd love to hear about it.",
+  "services": [
+    {
+      "name": "Architecture & interiors",
+      "description": "Exteriors, interiors and details. Clean lines, true verticals and natural light."
+    },
+    {
+      "name": "Landscape & travel",
+      "description": "Scenic and destination photography for publications, brands and print."
+    },
+    {
+      "name": "Candid & documentary",
+      "description": "Unposed coverage of places, people, events and everyday moments, captured as they happen."
+    },
+    {
+      "name": "Licensing & custom work",
+      "description": "Existing images for editorial, web or print, or something made for your project."
+    }
+  ],
+  "keywords": [
+    "architecture photographer",
+    "landscape photographer",
+    "candid photographer",
+    "documentary event photography",
+    "interior photography"
+  ]
+}
