@@ -10,19 +10,16 @@ export const Component = () => {
   useTitle('Working together')
   const photos = usePhotos()
 
-  // Highest rated first, then newest.
-  const showcase = useMemo(
+  // Newest first.
+  const recent = useMemo(
     () =>
       [...photos]
-        .sort(
-          (a, b) =>
-            (b.exif?.Rating ?? 0) - (a.exif?.Rating ?? 0) ||
-            new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime(),
-        )
+        .sort((a, b) => new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime())
         .slice(0, 12),
     [photos],
   )
 
+  const usageUrl = siteConfig.social?.usage?.trim()
   const contactUrl = work.email ? `mailto:${work.email}` : work.contactUrl || siteConfig.author.url
 
   return (
@@ -54,11 +51,11 @@ export const Component = () => {
           ))}
         </ul>
 
-        {showcase.length > 0 && (
+        {recent.length > 0 && (
           <>
-            <h2 className="mt-14 mb-4 text-xl font-semibold">Selected work</h2>
+            <h2 className="mt-14 mb-4 text-xl font-semibold">Recent work</h2>
             <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              {showcase.map((photo) => (
+              {recent.map((photo) => (
                 <li key={photo.id}>
                   <Link to={`/photos/${photo.id}`} className="block overflow-hidden rounded-xl">
                     <img
@@ -76,13 +73,23 @@ export const Component = () => {
           </>
         )}
 
-        <h2 className="mt-14 mb-3 text-xl font-semibold">Have a project in mind?</h2>
-        <p className="text-text-secondary text-sm leading-relaxed">
-          Tell me a bit about it: what it is, where, and when. We can take it from there.
-        </p>
-        <a href={contactUrl} className="text-accent mt-3 inline-block text-sm font-medium">
-          {work.email || 'Get in touch'}
+        <h2 className="mt-14 mb-3 text-xl font-semibold">{work.contactHeading}</h2>
+        <p className="text-text-secondary max-w-2xl text-sm leading-relaxed">{work.contactText}</p>
+        <a
+          href={contactUrl}
+          className="bg-accent mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-white"
+        >
+          <i className="i-mingcute-mail-fill" />
+          {work.email || 'Contact me'}
         </a>
+        {usageUrl && (
+          <p className="text-text-tertiary mt-6 text-xs">
+            Looking to use an existing photo?{' '}
+            <a href={usageUrl} className="hover:text-text-secondary underline underline-offset-2">
+              Usage &amp; copyright info
+            </a>
+          </p>
+        )}
       </div>
     </div>
   )
