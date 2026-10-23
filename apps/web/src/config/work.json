@@ -6,31 +6,33 @@
     "region": "Nebraska",
     "country": "US"
   },
-  "headline": "Working together",
-  "intro": "I photograph buildings, places and unposed moments, the kind of frames that feel found rather than staged. If you have a project in mind and think my work might be a fit, I'd love to hear about it.",
+ "headline": "Working together",
+  "intro": "I'm drawn to unposed, candid moments, and to the places, events and buildings where they happen. I like frames that feel found rather than staged. If you have a project in mind and think my work might be a fit, I'd love to hear about it.",
   "services": [
     {
-      "name": "Architecture & interiors",
+      "name": "Unposed & candid moments",
+      "description": "Real moments as they unfold, captured without staging or interruption."
+    },
+    {
+      "name": "Places & events",
+      "description": "Landscapes, travel and destinations, plus documentary-style coverage of events and gatherings."
+    },
+    {
+      "name": "Buildings & architecture",
       "description": "Exteriors, interiors and details. Clean lines, true verticals and natural light."
-    },
-    {
-      "name": "Landscape & travel",
-      "description": "Scenic and destination photography for publications, brands and print."
-    },
-    {
-      "name": "Candid & documentary",
-      "description": "Unposed coverage of places, people, events and everyday moments, captured as they happen."
     },
     {
       "name": "Licensing & custom work",
       "description": "Existing images for editorial, web or print, or something made for your project."
     }
   ],
+  "contactHeading": "Get in touch",
+  "contactText": "Have a question about a project, a photo, licensing or how an image can be used? Send me a note and I'll get back to you.",
   "keywords": [
-    "architecture photographer",
-    "landscape photographer",
     "candid photographer",
     "documentary event photography",
+    "landscape photographer",
+    "architecture photographer",
     "interior photography"
   ]
 }
