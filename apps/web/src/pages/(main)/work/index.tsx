@@ -1,7 +1,7 @@
-import { LinearBlur } from '@afilmory/ui'
+import { GlassButton, LinearBlur } from '@afilmory/ui'
 import { useSetAtom } from 'jotai'
 import { m } from 'motion/react'
-import { useMemo } from 'react'
+import { startTransition, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -57,6 +57,8 @@ const WorkHeader = () => {
 
 export const Component = () => {
   useTitle('Working together')
+  const { t } = useTranslation()
+  const navigate = useNavigate()
   const photos = usePhotos()
 
   // Newest first.
@@ -81,10 +83,20 @@ export const Component = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <div className="mx-auto max-w-6xl px-5 pt-24 pb-14 sm:px-8 sm:pt-28 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-5 pt-20 pb-14 sm:px-8 sm:pt-24 sm:pb-20">
+          {/* Same back button as the map page */}
+          <GlassButton
+            className="mb-8"
+            onClick={() => startTransition(() => navigate('/'))}
+            title={t('explory.back.to.gallery')}
+            aria-label={t('explory.back.to.gallery')}
+          >
+            <i className="i-mingcute-arrow-left-line text-base text-white" aria-hidden="true" />
+          </GlassButton>
+
           <div className="grid gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-14">
             {/* Left: intro + contact. Stays in view on desktop while the right side scrolls. */}
-            <div className="lg:sticky lg:top-28 lg:self-start">
+            <div className="lg:sticky lg:top-24 lg:self-start">
               {avatarUrl && (
                 <div className="mb-5 flex items-center gap-3">
                   <img
@@ -116,7 +128,14 @@ export const Component = () => {
                   >
                     <i className="i-mingcute-mail-fill text-xl" />
                   </a>
-                  {work.email && <span className="text-text-secondary text-sm break-all">{work.email}</span>}
+                  {work.email && (
+                    <a
+                      href={`mailto:${work.email}`}
+                      className="text-text-secondary hover:text-text text-sm break-all underline-offset-2 transition-colors hover:underline"
+                    >
+                      {work.email}
+                    </a>
+                  )}
                 </div>
 
                 {usageUrl && (
