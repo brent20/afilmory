@@ -418,6 +418,8 @@
   "photo.share.copy.failed": "Copy failed",
   "photo.share.copy.link": "Copy Link",
   "photo.share.default.title": "Photo Share",
+  "photo.views_one": "{{count}} view",
+  "photo.views_other": "{{count}} views",
   "photo.share.download.original": "Download original",
   "photo.share.downloadPreview": "Download preview",
   "photo.share.embed.code": "Embed Code",
@@ -469,5 +471,7 @@
   "gallery.metrics.time": "Time of Day",
   "gallery.metrics.geo": "Geographic Reach",
   "gallery.metrics.timeline": "Shooting Timeline",
-  "gallery.metrics.no_photos": "No photos available to analyze"
+  "gallery.metrics.no_photos": "No photos available to analyze",
+  "gallery.metrics.most_viewed": "Most Viewed Photos",
+  "gallery.metrics.most_viewed_empty": "View counts will appear here as people browse the gallery."
 }
