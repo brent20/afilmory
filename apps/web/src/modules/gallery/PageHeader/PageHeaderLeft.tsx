@@ -81,7 +81,7 @@ export const PageHeaderLeft = () => {
           <Link
             to="/work"
             className="inline-flex size-6 items-center justify-center rounded text-white/40 transition-colors duration-200 hover:text-white/80 lg:size-7"
-            title="Contact"
+            title="Work Together"
           >
             <i className="i-mingcute-mail-fill text-sm lg:text-base" />
           </Link>
