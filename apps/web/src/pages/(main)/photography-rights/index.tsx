@@ -87,16 +87,13 @@ export const Component = () => {
   useEffect(() => {
     const place = [work.location?.city, work.location?.region].filter(Boolean).join(', ')
     const homeTitle = `${siteConfig.name} | Candid, Landscape & Architecture Photographer${place ? ` in ${place}` : ''}`
-    document.title = `Photography rights | ${siteConfig.name}`
+    document.title = `Using my photos | ${siteConfig.name}`
     return () => {
       document.title = homeTitle
     }
   }, [])
   const { t } = useTranslation()
   const navigate = useNavigate()
-
-  const avatarUrl = siteConfig.author.avatar
-  const contactUrl = work.email ? `mailto:${work.email}` : work.contactUrl || siteConfig.author.url
 
   return (
     <>
@@ -121,7 +118,7 @@ export const Component = () => {
           <div className="grid gap-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-14">
             {/* Left: welcome + contact. Stays in view on desktop while the right side scrolls. */}
             <div className="lg:sticky lg:top-24 lg:self-start">
-              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Photography rights</h1>
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Using my photos</h1>
               <p className="text-text-secondary mt-4 text-base leading-relaxed">
                 Welcome! You found this page through one of my photos. Thanks for stopping by. I&apos;m glad you liked
                 it!
@@ -130,52 +127,22 @@ export const Component = () => {
                 Unless otherwise stated, photographs created by Brent Saltzman and displayed on this website, Flickr, or other online sources are protected by copyright and are owned by
                 Brent Saltzman.
               </p>
-
-              <div className="bg-material-medium/40 border-fill-tertiary mt-6 rounded-2xl border p-5 sm:mt-8">
-                <div className="flex items-center gap-3">
-                  {avatarUrl && (
-                    <img
-                      src={avatarUrl}
-                      alt={siteConfig.author.name}
-                      decoding="async"
-                      className="ring-fill-tertiary size-12 shrink-0 rounded-full object-cover ring-1"
-                    />
-                  )}
-                  <h2 className="text-lg font-semibold">Contact</h2>
-                </div>
-                <p className="text-text-secondary mt-4 text-sm leading-relaxed">
-                  For permission or licensing inquiries, please contact me via email at{' '}
-                  {work.email ? (
-                    <a
-                      href={`mailto:${work.email}`}
-                      className="text-text break-all underline underline-offset-2 transition-opacity hover:opacity-80"
-                    >
-                      {work.email}
-                    </a>
-                  ) : (
-                    'the contact link below'
-                  )}
-                  .
-                </p>
-
-                <div className="mt-4 flex items-center gap-3">
-                  <a
-                    href={contactUrl}
-                    aria-label="Contact me"
-                    title="Contact me"
-                    className="bg-accent inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-white transition-opacity hover:opacity-80"
-                  >
-                    <i className="i-mingcute-mail-fill text-xl" />
-                  </a>
-                </div>
-
-                <p className="text-text-tertiary mt-5 text-xs">
-                  Looking to hire me for a project?{' '}
-                  <Link to="/work" className="hover:text-text-secondary underline underline-offset-2">
-                    Working together
-                  </Link>
-                </p>
-              </div>
+              <p className="text-text-secondary mt-4 text-base leading-relaxed">
+                For permission or licensing inquiries, please contact me via email at{' '}
+                <a
+                  href={`mailto:${work.email}`}
+                  className="text-text break-all underline underline-offset-2 transition-opacity hover:opacity-80"
+                >
+                  {work.email}
+                </a>
+                .
+              </p>
+              <p className="text-text-tertiary mt-6 text-xs">
+                Looking to hire me for a project?{' '}
+                <Link to="/work" className="hover:text-text-secondary underline underline-offset-2">
+                  Working together
+                </Link>
+              </p>
             </div>
 
             {/* Right: the usage terms */}
