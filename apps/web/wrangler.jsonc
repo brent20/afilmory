@@ -1,5 +1,12 @@
 {
   "name": "afilmory-web",
   "compatibility_date": "2025-06-05",
-  "pages_build_output_dir": "./dist"
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "photo-views",
+      "database_id": "4ae9be5a-91fc-4023-b8d6-c5304a10278a"
+    }
+  ]
 }
