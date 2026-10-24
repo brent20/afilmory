@@ -34,6 +34,7 @@ import type { PhotoManifest } from '~/types/photo'
 
 import { ReactionRail } from '../social'
 import { canUsePhotoReactions } from '../social/reaction-availability'
+import { PhotoViewCounter } from '../views/PhotoViewCounter'
 import { resolvePhotoViewerEntryState, shouldHideCurrentViewerImage } from './entry-animation-state'
 import { GalleryThumbnail } from './GalleryThumbnail'
 import { MobilePhotoInspectorSheet } from './MobilePhotoInspectorSheet'
@@ -479,6 +480,10 @@ export const PhotoViewer = ({
 
                       {/* 右侧按钮组 */}
                       <div className="flex items-center gap-2">
+           
+                          {currentPhoto && <PhotoViewCounter photoId={currentPhoto.id} />}
+
+
                         {hasRegions && (
                           <ActionButton
                             disabled={!isMobileChromeInteractive}
