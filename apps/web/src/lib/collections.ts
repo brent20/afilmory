@@ -23,7 +23,7 @@ export const COLLECTIONS: CollectionDefinition[] = [
   { slug: 'street', title: 'Street & City', tags: ['Street', 'City', 'Urban', 'People', 'Signs & Text'] },
   { slug: 'architecture', title: 'Architecture', tags: ['Architecture', 'Interior', 'Bridges'] },
   { slug: 'landscape', title: 'Landscape', tags: ['Landscape', 'Mountains', 'Trees', 'Sky', 'Clouds', 'Fog'  ] },
-   /** { slug: 'water', title: 'Water', tags: ['Water', 'Beach', 'Ocean', 'Lake', 'River', 'Boats'] }, */
+  { slug: 'everyday-life', title: 'Everyday Life', tags: ['Family', 'Food', 'Sports', 'Music', 'Technology'] },
   { slug: 'wildlife', title: 'Wildlife & Nature', tags: ['Wildlife', 'Birds', 'Pets', 'Flowers', 'Nature', 'Macro'] },
   { slug: 'night', title: 'Night', tags: ['Night'] },
   { slug: 'machines', title: 'Machines', tags: ['Cars', 'Trains', 'Aircraft', 'Boats'] },
