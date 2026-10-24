@@ -88,7 +88,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
 
     // 1. Home
     const homeMeta: PageMeta = {
-      title: `${siteConfig.name} | Candid, Landscape & Architecture Photographer${inPlace}`,
+      title: `${siteConfig.name} | Omaha Candid & Architecture Photographer`,
       description: clip(siteConfig.description, 160),
       url: `${baseUrl}/`,
       image: defaultImage,
@@ -110,7 +110,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
 
     // 2. Hire page
     const workMeta: PageMeta = {
-      title: `Work with ${siteConfig.name} | Candid, Landscape & Architecture Photographer${inPlace}`,
+      title: `Work with ${siteConfig.name} | Omaha Architecture Photographer`,
       description: clip(
         `Work with ${siteConfig.name} on architecture, interior, landscape and candid photography${inPlace}. Have a project in mind? Get in touch.`,
         160,
