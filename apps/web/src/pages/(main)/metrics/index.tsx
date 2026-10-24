@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { GlassButton } from '@afilmory/ui'
 import { usePhotos } from '~/hooks/usePhotoViewer'
 import { computePhotoMetrics, type PhotoMetrics } from '../../../lib/metrics'
+import { MostViewedPhotos } from '~/modules/views/MostViewedPhotos'
 
 const MetricCard = ({ 
   title, 
@@ -103,6 +104,9 @@ export const Component = () => {
       </div>
 
       {/* Main Dashboard Grid */}
+      <MetricCard title={t('gallery.metrics.most_viewed' as any) || 'Most Viewed Photos'} className="mb-12">
+  <MostViewedPhotos />
+      </MetricCard>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
         
         {/* Exposure Patterns - Large Card */}
