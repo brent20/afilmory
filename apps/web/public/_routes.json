@@ -1,19 +1,5 @@
 {
   "version": 1,
-  "include": ["/*","/api/*"],
-  "exclude": [
-    "/thumbnails/*",
-    "/*.ico",
-    "/*.png",
-    "/*.jpg",
-    "/*.jpeg",
-    "/*.gif",
-    "/*.svg",
-    "/*.css",
-    "/manifest.webmanifest",
-    "/*.js",
-    "/*.json",
-    "/*.xml",
-    "/*.txt"
-  ]
+  "include": ["/api/*"],
+  "exclude": []
 }
