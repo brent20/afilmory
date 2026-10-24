@@ -1,7 +1,13 @@
 {
-  "name": "afilmory-web",
-  "compatibility_date": "2025-06-05",
-  "pages_build_output_dir": "./dist",
+  "name": "afilmory",
+  "main": "./.worker-build/index.js",
+  "compatibility_date": "2026-10-09",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
   "d1_databases": [
     {
       "binding": "DB",
