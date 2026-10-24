@@ -89,17 +89,27 @@ export const Masonry = <Item,>(props: MasonryProps<Item> & { ref?: React.Ref<Mas
   }))
 
   // Workaround for https://github.com/jaredLunde/masonic/issues/12
-  const itemCounter = React.useRef<number>(props.items.length)
+  // masonic caches each item's position by *index*. That's fine when items are only
+  // appended (e.g. "Show more"), but when a filter/collection/sort changes the list,
+  // the same index now holds a different photo with a different height, so the stale
+  // cached positions leave gaps and uneven columns. Reset the positioner whenever the
+  // list is anything other than an append-only extension of the previous list.
+  const prevItemsRef = React.useRef<typeof props.items>(props.items)
+  const prevKeysRef = React.useRef<Array<string | number>>([])
+  const layoutVersionRef = React.useRef(0)
 
-  let shrunk = false
+  if (prevItemsRef.current !== props.items || prevKeysRef.current.length === 0) {
+    const nextKeys = props.items.map((item, i) => props.itemKey?.(item, i) ?? i)
+    const prevKeys = prevKeysRef.current
+    const isAppendOnly = nextKeys.length >= prevKeys.length && prevKeys.every((key, i) => key === nextKeys[i])
 
-  if (props.items.length !== itemCounter.current) {
-    if (props.items.length < itemCounter.current) shrunk = true
+    if (!isAppendOnly) layoutVersionRef.current += 1
 
-    itemCounter.current = props.items.length
+    prevItemsRef.current = props.items
+    prevKeysRef.current = nextKeys
   }
 
-  nextProps.positioner = usePositioner(nextProps, [shrunk ? Math.random() + positionIndex : positionIndex])
+  nextProps.positioner = usePositioner(nextProps, [layoutVersionRef.current, positionIndex])
 
   nextProps.resizeObserver = useResizeObserver(nextProps.positioner)
   nextProps.scrollTop = scrollTop
