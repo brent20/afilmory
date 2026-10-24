@@ -68,7 +68,7 @@ export const ActionIconButton = ({
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={commonClasses} title={title}>
+      <a href={href} rel="noreferrer" className={commonClasses} title={title}>
         {content}
       </a>
     )
