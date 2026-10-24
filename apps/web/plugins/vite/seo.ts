@@ -88,7 +88,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
 
     // 1. Home
     const homeMeta: PageMeta = {
-      title: `${siteConfig.name} | Architecture, Landscape & Candid Photographer${inPlace}`,
+      title: `${siteConfig.name} | Candid, Landscape & Architecture Photographer${inPlace}`,
       description: clip(siteConfig.description, 160),
       url: `${baseUrl}/`,
       image: defaultImage,
@@ -110,7 +110,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
 
     // 2. Hire page
     const workMeta: PageMeta = {
-      title: `Work with ${siteConfig.name} | Architecture, Landscape & Candid Photographer${inPlace}`,
+      title: `Work with ${siteConfig.name} | Candid, Landscape & Architecture Photographer${inPlace}`,
       description: clip(
         `Work with ${siteConfig.name} on architecture, interior, landscape and candid photography${inPlace}. Have a project in mind? Get in touch.`,
         160,
@@ -375,7 +375,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       .filter((p) => isSafeId(p.id))
       .map((p) => `<li><a href="/photos/${encodeURIComponent(p.id)}">${esc(photoName(p))}</a></li>`)
       .join('')
-    return `<main>${nav()}<h1>${esc(siteConfig.name)}: architecture, landscape &amp; candid photography</h1>`
+    return `<main>${nav()}<h1>${esc(siteConfig.name)}: candid, landscape &amp; architecture photography</h1>`
       + `<p>${esc(siteConfig.description)}</p>`
       + `<p><a href="/work">${esc(hire.headline)}</a></p>`
       + (links ? `<h2>Recent photographs</h2><ul>${links}</ul>` : '')
