@@ -85,8 +85,7 @@ const RightsHeader = () => {
 export const Component = () => {
   // Set this page's tab title, and put the gallery's title back when leaving.
   useEffect(() => {
-    const place = [work.location?.city, work.location?.region].filter(Boolean).join(', ')
-    const homeTitle = `${siteConfig.name} | Candid, Landscape & Architecture Photographer${place ? ` in ${place}` : ''}`
+    const homeTitle = `${siteConfig.name} | Omaha Candid & Architecture Photographer`
     document.title = `Using my photos | ${siteConfig.name}`
     return () => {
       document.title = homeTitle
