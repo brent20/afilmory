@@ -146,7 +146,6 @@ export const Component = () => {
                     Looking to use an existing photo?{' '}
                     <a
                       href={usageUrl}
-                      target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-text-secondary underline underline-offset-2"
                     >
