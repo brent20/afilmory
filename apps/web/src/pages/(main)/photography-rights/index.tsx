@@ -23,7 +23,7 @@ const sections = [
   {
     title: 'Personal and Non-Commercial Sharing',
     paragraphs: [
-      "You're welcome to share links to photographs or pages on this website or my photography portfolio.",
+      "You're welcome to share links to photographs or pages on this website.",
       'If you would like to share or repost an actual photograph, please contact me for permission. When permission is granted, attribution to Brent Saltzman and a link to this website are appreciated.',
     ],
   },
