@@ -3,13 +3,12 @@ import '~/modules/viewer/PhotoViewer.css'
 import type { PhotoManifestItem, PickedExif } from '@afilmory/builder'
 import { MotionButtonBase, ScrollArea } from '@afilmory/ui'
 import { clsxm, Spring } from '@afilmory/utils'
-import { isNil } from 'es-toolkit/compat'
 import { useAtomValue } from 'jotai'
 import { m } from 'motion/react'
 import type { FC, ReactNode } from 'react'
-import { Fragment, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MiniMap } from './MiniMap'
+
 import { isExiftoolLoadedAtom } from '~/atoms/app'
 import { siteConfig } from '~/config'
 import { useMobile } from '~/hooks/useMobile'
@@ -21,11 +20,13 @@ import {
   MaterialSymbolsShutterSpeed,
   TablerAperture,
 } from '~/icons'
-import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
 import { convertExifGPSToDecimal } from '~/lib/map-utils'
+import { getRenderablePhotoRegions } from '~/modules/viewer/photo-region-bounds'
+
 import { ExifRowGroup, ExifSection } from './ExifSection'
 import { formatExifData, Row } from './formatExifData'
 import { HistogramChart } from './HistogramChart'
+import { MiniMap } from './MiniMap'
 import { PhotoRegionsSection } from './PhotoRegionsSection'
 import { RawExifViewer } from './RawExifViewer'
 
@@ -35,14 +36,18 @@ import { RawExifViewer } from './RawExifViewer'
  * Affordance is deliberately quiet: a dotted underline and a faint arrow at rest.
  * On hover the text stays full-contrast (no accent-coloured text, which is hard to
  * read on the dark glass panel); the accent shows up as a soft wash behind it instead.
+ *
+ * `sameTab` keeps the link in the current tab (used for the in-site camera/lens filters
+ * on mobile, where a new tab per tap piles up quickly).
  */
-const LinkRow: FC<{ label: string, value: string, href: string, title?: string, icon?: ReactNode }> = ({
-  label,
-  value,
-  href,
-  title,
-  icon,
-}) => (
+const LinkRow: FC<{
+  label: string
+  value: string
+  href: string
+  title?: string
+  icon?: ReactNode
+  sameTab?: boolean
+}> = ({ label, value, href, title, icon, sameTab = false }) => (
   <div className="flex justify-between gap-4 text-sm">
     <span className="text-text-secondary flex shrink-0 items-center gap-1.5">
       {icon}
@@ -50,8 +55,7 @@ const LinkRow: FC<{ label: string, value: string, href: string, title?: string, 
     </span>
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      {...(sameTab ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
       title={title}
       className="group text-text hover:bg-accent/15 focus-visible:bg-accent/15 -my-0.5 -mr-1.5 inline-flex min-w-0 items-center justify-end gap-1 rounded-md px-1.5 py-0.5 text-right underline decoration-white/40 decoration-dotted underline-offset-4 transition-colors duration-200 hover:decoration-white hover:decoration-solid focus-visible:decoration-white focus-visible:decoration-solid"
     >
@@ -63,7 +67,39 @@ const LinkRow: FC<{ label: string, value: string, href: string, title?: string, 
 
 const rowIconClassName = 'shrink-0 text-sm text-white/70'
 
+// Row icons. Same method as the camera row: an `i-mingcute-*` class + `rowIconClassName`.
+// (Keep the class names as full literals so the icon plugin can find them.)
+const icons = {
+  time: <i className={`i-mingcute-time-line ${rowIconClassName}`} />,
+  copyright: <i className={`i-mingcute-copyright-line ${rowIconClassName}`} />,
+  camera: <i className={`i-mingcute-camera-line ${rowIconClassName}`} />,
+  equivalentFocalLength: <i className={`i-mingcute-fullscreen-line ${rowIconClassName}`} />,
+  exposureProgram: <i className={`i-mingcute-settings-3-line ${rowIconClassName}`} />,
+  meteringMode: <i className={`i-mingcute-aiming-2-line ${rowIconClassName}`} />,
+  whiteBalance: <i className={`i-mingcute-sun-line ${rowIconClassName}`} />,
+  flash: <i className={`i-mingcute-flash-line ${rowIconClassName}`} />,
+  latitude: <i className={`i-mingcute-earth-latitude-line ${rowIconClassName}`} />,
+  longitude: <i className={`i-mingcute-earth-longitude-line ${rowIconClassName}`} />,
+  altitude: <i className={`i-mingcute-mountain-2-line ${rowIconClassName}`} />,
+  city: <i className={`i-mingcute-location-line ${rowIconClassName}`} />,
+}
+
 const captureChipClassName = 'border-accent/20 bg-accent/10 flex h-6 items-center gap-2 rounded-md border px-2'
+
+// Capture Mode rows are treated as noise when they show the camera's normal behaviour,
+// so they only appear when the value is different. Matched against the raw EXIF strings.
+const DEFAULT_METERING_MODE = /multi|pattern|matrix|evaluative/i
+const DEFAULT_WHITE_BALANCE = /^auto/i
+const FLASH_DID_NOT_FIRE = /no flash|did not fire|not fired|^off$|^disabled$/i
+
+// A camera reporting an equivalent focal length within this ratio of the real one is
+// treated as full frame (no crop factor), so the 35mm-equivalent row is hidden.
+const FULL_FRAME_TOLERANCE = 0.03
+
+// GPS is shown rounded: 2 decimals is roughly 1 km. Change this to 3 for roughly 100 m.
+const GPS_DECIMALS = 2
+const roundCoordinate = (value: number) => Number(value.toFixed(GPS_DECIMALS))
+const formatCoordinate = (value: number, ref: string) => `${Math.abs(value).toFixed(GPS_DECIMALS)}° ${ref}`
 
 interface ExifPanelBaseProps {
   currentPhoto: PhotoManifestItem
@@ -168,8 +204,10 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
   const isMobile = useMobile()
   const formattedExifData = useMemo(() => formatExifData(exifData), [exifData])
   const gpsData = useMemo(() => convertExifGPSToDecimal(exifData), [exifData])
-  const decimalLatitude = gpsData?.latitude ?? null
-  const decimalLongitude = gpsData?.longitude ?? null
+
+  // Rounded copies for display and for the mini map, so the exact spot isn't shown.
+  const displayLatitude = gpsData ? roundCoordinate(gpsData.latitude) : null
+  const displayLongitude = gpsData ? roundCoordinate(gpsData.longitude) : null
 
   const regions = useMemo(
     () =>
@@ -215,153 +253,143 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
     [onTagClick],
   )
 
+  const fx = formattedExifData
+
+  // Exposure chips (aperture / shutter / ISO / EV) sit at the top of the panel.
+  const showCaptureParameters = !!fx && !!(fx.aperture || fx.shutterSpeed || fx.iso || fx.exposureBias)
+
+  // 35mm equivalent only matters when the sensor isn't full frame.
+  const showEquivalentFocalLength = (() => {
+    const equivalent = fx?.focalLength35mm
+    const actual = fx?.focalLength
+    if (!equivalent || !actual) return false
+    return Math.abs(equivalent / actual - 1) > FULL_FRAME_TOLERANCE
+  })()
+
+  // Capture Mode rows: the exposure program always shows; the rest only when not the default.
+  const showMeteringMode = !!fx?.meteringMode && !DEFAULT_METERING_MODE.test(String(exifData?.MeteringMode ?? ''))
+  const showWhiteBalance = !!fx?.whiteBalance && !DEFAULT_WHITE_BALANCE.test(String(exifData?.WhiteBalance ?? ''))
+  const showFlash = !!fx?.flash && !FLASH_DID_NOT_FIRE.test(String(exifData?.Flash ?? ''))
+  const showCaptureMode = !!fx?.exposureProgram || showMeteringMode || showWhiteBalance || showFlash
+
   return (
     <ScrollArea mask rootClassName={rootClassName} viewportClassName={viewportClassName}>
       <div className={clsxm('flex flex-col', isMobile ? 'gap-3' : 'gap-4')}>
-        <ExifSection title={t('exif.basic.info')}>
-          <ExifRowGroup>
-            {formattedExifData?.dateTime && <Row label={t('exif.capture.time')} value={formattedExifData.dateTime} />}
-            {formattedExifData?.copyright && (
-              usageUrl
-                ? (
-                    <LinkRow
-                      label={t('exif.copyright')}
-                      value={formattedExifData.copyright}
-                      href={usageUrl}
-                      title="Photo usage and licensing"
-                    />
-                  )
-                : <Row label={t('exif.copyright')} value={formattedExifData.copyright} />
-            )}
-          </ExifRowGroup>
-        </ExifSection>
+        {showCaptureParameters && fx && (
+          <ExifSection title={t('exif.capture.parameters')}>
+            <div className="grid grid-cols-2 gap-2">
+              {fx.aperture && (
+                <div className={captureChipClassName}>
+                  <TablerAperture className="text-sm text-white/70" />
+                  <span className="text-xs">{fx.aperture}</span>
+                </div>
+              )}
 
-        
-   {formattedExifData && (
-          <Fragment>
-            {(formattedExifData.camera || formattedExifData.lens) && (
-              <ExifSection title={t('exif.device.info')}>
-                <ExifRowGroup>
-                  {formattedExifData.camera && (
-                    cameraFilterName
-                      ? (
-                          <LinkRow
-                            icon={<i className={`i-mingcute-camera-line ${rowIconClassName}`} />}
-                            label={t('exif.camera')}
-                            value={formattedExifData.camera}
-                            href={`/?cameras=${encodeURIComponent(cameraFilterName)}`}
-                            title="Show all photos taken with this camera"
-                          />
-                        )
-                      : (
-                          <Row
-                            icon={<i className={`i-mingcute-camera-line ${rowIconClassName}`} />}
-                            label={t('exif.camera')}
-                            value={formattedExifData.camera}
-                          />
-                        )
-                  )}
-                  {formattedExifData.lens && (
-                    lensFilterName
-                      ? (
-                          <LinkRow
-                            icon={<LensElementIcon className={rowIconClassName} />}
-                            label={t('exif.lens')}
-                            value={formattedExifData.lens}
-                            href={`/?lenses=${encodeURIComponent(lensFilterName)}`}
-                            title="Show all photos taken with this lens"
-                          />
-                        )
-                      : (
-                          <Row
-                            icon={<LensElementIcon className={rowIconClassName} />}
-                            label={t('exif.lens')}
-                            value={formattedExifData.lens}
-                          />
-                        )
-                  )}
-                  {formattedExifData.focalLength && (
-                    <Row
-                      icon={<FocalLengthIcon className={rowIconClassName} />}
-                      label={t('exif.focal.length.actual')}
-                      value={`${formattedExifData.focalLength}mm`}
-                    />
-                  )}
-                  {formattedExifData.maxAperture && (
-                    <Row
-                      icon={<TablerAperture className={rowIconClassName} />}
-                      label={t('exif.max.aperture')}
-                      value={`f/${formattedExifData.maxAperture}`}
-                    />
-                  )}
-                </ExifRowGroup>
-              </ExifSection>
-            )}
+              {fx.shutterSpeed && (
+                <div className={captureChipClassName}>
+                  <MaterialSymbolsShutterSpeed className="text-sm text-white/70" />
+                  <span className="text-xs">{fx.shutterSpeed}</span>
+                </div>
+              )}
 
-        {(formattedExifData.exposureMode
-          || formattedExifData.exposureProgram
-          || formattedExifData.meteringMode
-          || formattedExifData.whiteBalance
-          || formattedExifData.flash) && (
-          <ExifSection title={t('exif.capture.mode')}>
+              {fx.iso && (
+                <div className={captureChipClassName}>
+                  <CarbonIsoOutline className="text-sm text-white/70" />
+                  <span className="text-xs">ISO {fx.iso}</span>
+                </div>
+              )}
+
+              {fx.exposureBias && (
+                <div className={captureChipClassName}>
+                  <MaterialSymbolsExposure className="text-sm text-white/70" />
+                  <span className="text-xs">{fx.exposureBias}</span>
+                </div>
+              )}
+            </div>
+          </ExifSection>
+        )}
+
+        {fx && (fx.dateTime || fx.copyright) && (
+          <ExifSection title={t('exif.basic.info')}>
             <ExifRowGroup>
-              {!isNil(formattedExifData.exposureProgram) && (
-                <Row label={t('exif.exposureprogram.title')} value={formattedExifData.exposureProgram} />
+              {fx.dateTime && <Row icon={icons.time} label={t('exif.capture.time')} value={fx.dateTime} />}
+              {fx.copyright &&
+                (usageUrl ? (
+                  <LinkRow
+                    icon={icons.copyright}
+                    label={t('exif.copyright')}
+                    value={fx.copyright}
+                    href={usageUrl}
+                    title="Photo usage and licensing"
+                  />
+                ) : (
+                  <Row icon={icons.copyright} label={t('exif.copyright')} value={fx.copyright} />
+                ))}
+            </ExifRowGroup>
+          </ExifSection>
+        )}
+
+        {fx && (fx.camera || fx.lens || fx.focalLength) && (
+          <ExifSection title={t('exif.device.info')}>
+            <ExifRowGroup>
+              {fx.camera &&
+                (cameraFilterName ? (
+                  <LinkRow
+                    icon={icons.camera}
+                    label={t('exif.camera')}
+                    value={fx.camera}
+                    href={`/?cameras=${encodeURIComponent(cameraFilterName)}`}
+                    title="Show all photos taken with this camera"
+                    sameTab={isMobile}
+                  />
+                ) : (
+                  <Row icon={icons.camera} label={t('exif.camera')} value={fx.camera} />
+                ))}
+              {fx.lens &&
+                (lensFilterName ? (
+                  <LinkRow
+                    icon={<LensElementIcon className={rowIconClassName} />}
+                    label={t('exif.lens')}
+                    value={fx.lens}
+                    href={`/?lenses=${encodeURIComponent(lensFilterName)}`}
+                    title="Show all photos taken with this lens"
+                    sameTab={isMobile}
+                  />
+                ) : (
+                  <Row icon={<LensElementIcon className={rowIconClassName} />} label={t('exif.lens')} value={fx.lens} />
+                ))}
+              {fx.focalLength && (
+                <Row
+                  icon={<FocalLengthIcon className={rowIconClassName} />}
+                  label={t('exif.focal.length.actual')}
+                  value={`${fx.focalLength}mm`}
+                />
               )}
-              {!isNil(formattedExifData.exposureMode) && (
-                <Row label={t('exif.exposure.mode.title')} value={formattedExifData.exposureMode} />
-              )}
-              {!isNil(formattedExifData.meteringMode) && (
-                <Row label={t('exif.metering.mode.type')} value={formattedExifData.meteringMode} />
-              )}
-              {!isNil(formattedExifData.whiteBalance) && (
-                <Row label={t('exif.white.balance.title')} value={formattedExifData.whiteBalance} />
-              )}
-              {!isNil(formattedExifData.flash) && (
-                <Row label={t('exif.flash.title')} value={formattedExifData.flash} />
+              {showEquivalentFocalLength && (
+                <Row
+                  icon={icons.equivalentFocalLength}
+                  label={t('exif.focal.length.equivalent')}
+                  value={`${fx.focalLength35mm}mm`}
+                />
               )}
             </ExifRowGroup>
           </ExifSection>
         )}
 
-        {formattedExifData
-          && (formattedExifData.shutterSpeed
-            || formattedExifData.iso
-            || formattedExifData.aperture
-            || formattedExifData.exposureBias) && (
-          <ExifSection title={t('exif.capture.parameters')}>
-            <div className="grid grid-cols-2 gap-2">
-              {formattedExifData.aperture && (
-                <div className={captureChipClassName}>
-                  <TablerAperture className="text-sm text-white/70" />
-                  <span className="text-xs">{formattedExifData.aperture}</span>
-                </div>
+        {showCaptureMode && fx && (
+          <ExifSection title={t('exif.capture.mode')}>
+            <ExifRowGroup>
+              {fx.exposureProgram && (
+                <Row icon={icons.exposureProgram} label={t('exif.exposureprogram.title')} value={fx.exposureProgram} />
               )}
-
-              {formattedExifData.shutterSpeed && (
-                <div className={captureChipClassName}>
-                  <MaterialSymbolsShutterSpeed className="text-sm text-white/70" />
-                  <span className="text-xs">{formattedExifData.shutterSpeed}</span>
-                </div>
+              {showMeteringMode && (
+                <Row icon={icons.meteringMode} label={t('exif.metering.mode.type')} value={fx.meteringMode} />
               )}
-
-              {formattedExifData.iso && (
-                <div className={captureChipClassName}>
-                  <CarbonIsoOutline className="text-sm text-white/70" />
-                  <span className="text-xs">
-                    ISO
-                    {formattedExifData.iso}
-                  </span>
-                </div>
+              {showWhiteBalance && (
+                <Row icon={icons.whiteBalance} label={t('exif.white.balance.title')} value={fx.whiteBalance} />
               )}
-
-              {formattedExifData.exposureBias && (
-                <div className={captureChipClassName}>
-                  <MaterialSymbolsExposure className="text-sm text-white/70" />
-                  <span className="text-xs">{formattedExifData.exposureBias}</span>
-                </div>
-              )}
-            </div>
+              {showFlash && <Row icon={icons.flash} label={t('exif.flash.title')} value={fx.flash} />}
+            </ExifRowGroup>
           </ExifSection>
         )}
 
@@ -425,42 +453,45 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
           </ExifSection>
         )}
 
-        
+        {gpsData && displayLatitude !== null && displayLongitude !== null && (
+          <ExifSection title={t('exif.gps.location.info')} className="gap-3">
+            <ExifRowGroup>
+              <Row
+                icon={icons.latitude}
+                label={t('exif.gps.latitude')}
+                value={formatCoordinate(gpsData.latitude, gpsData.latitudeRef)}
+              />
+              <Row
+                icon={icons.longitude}
+                label={t('exif.gps.longitude')}
+                value={formatCoordinate(gpsData.longitude, gpsData.longitudeRef)}
+              />
+              {typeof gpsData.altitude === 'number' && (
+                <Row icon={icons.altitude} label={t('exif.gps.altitude')} value={`${Math.round(gpsData.altitude)}m`} />
+              )}
+            </ExifRowGroup>
 
-            
-          {formattedExifData.gps && (
-              <ExifSection title={t('exif.gps.location.info')} className="gap-3">
-                <ExifRowGroup>
-                  <Row label={t('exif.gps.latitude')} value={formattedExifData.gps.latitude} />
-                  <Row label={t('exif.gps.longitude')} value={formattedExifData.gps.longitude} />
-                  {formattedExifData.gps.altitude && (
-                    <Row label={t('exif.gps.altitude')} value={`${formattedExifData.gps.altitude}m`} />
-                  )}
-                </ExifRowGroup>
-
-                {currentPhoto.location && (
-                  <ExifRowGroup>
-                    {(currentPhoto.location.city || currentPhoto.location.country) && (
-                      <Row
-                        label={t('exif.gps.city')}
-                        value={[currentPhoto.location.city, currentPhoto.location.state, currentPhoto.location.country].filter(Boolean).join(', ')}
-                      />
-                    )}
-                                     {/* Address row hidden for now
-                    {currentPhoto.location.locationName && (
-                      <Row label={t('exif.gps.address')} value={currentPhoto.location.locationName} ellipsis={true} />
-                    )}
-                    */}
-
-                  </ExifRowGroup>
+            {currentPhoto.location && (
+              <ExifRowGroup>
+                {(currentPhoto.location.city || currentPhoto.location.country) && (
+                  <Row
+                    icon={icons.city}
+                    label={t('exif.gps.city')}
+                    value={[currentPhoto.location.city, currentPhoto.location.state, currentPhoto.location.country]
+                      .filter(Boolean)
+                      .join(', ')}
+                  />
                 )}
-
-                {decimalLatitude !== null && decimalLongitude !== null && (
-                  <MiniMap latitude={decimalLatitude} longitude={decimalLongitude} photoId={currentPhoto.id} />
+                {/* Address row hidden for now
+                {currentPhoto.location.locationName && (
+                  <Row label={t('exif.gps.address')} value={currentPhoto.location.locationName} ellipsis={true} />
                 )}
-              </ExifSection>
+                */}
+              </ExifRowGroup>
             )}
-          </Fragment>
+
+            <MiniMap latitude={displayLatitude} longitude={displayLongitude} photoId={currentPhoto.id} />
+          </ExifSection>
         )}
       </div>
     </ScrollArea>
