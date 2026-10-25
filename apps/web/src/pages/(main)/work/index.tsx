@@ -1,17 +1,50 @@
+import { isFeaturedPhoto, photoLoader } from '@afilmory/data'
 import { GlassButton, LinearBlur } from '@afilmory/ui'
 import { useSetAtom } from 'jotai'
 import { m } from 'motion/react'
-import { startTransition, useEffect, useMemo } from 'react'
+import { startTransition, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate, useNavigationType } from 'react-router'
 
 import { isCommandPaletteOpenAtom } from '~/atoms/app'
 import { siteConfig } from '~/config'
 import work from '~/config/work.json'
 import { useMobile } from '~/hooks/useMobile'
-import { usePhotos } from '~/hooks/usePhotoViewer'
 import { PageHeaderLeft } from '~/modules/gallery/PageHeader/PageHeaderLeft'
 import { ActionIconButton } from '~/modules/gallery/PageHeader/utils'
+
+const FEATURED_COUNT = 12
+
+type Photo = ReturnType<typeof photoLoader.getPhotos>[number]
+
+// Remembered for the lifetime of the page so that closing a photo (or pressing Back)
+// brings the visitor back to the same grid and scroll position instead of reshuffling.
+let lastIds: string[] | null = null
+let lastScrollTop = 0
+
+const takenAt = (photo: Photo) => new Date(photo.dateTaken).getTime()
+
+/**
+ * Photos tagged with the featured Lightroom keyword come first. More than 12 of them:
+ * show a random 12 (a new set on every visit). Fewer than 12: fill up with the newest
+ * photos from the gallery.
+ */
+const pickFeatured = (): Photo[] => {
+  const newestFirst = [...photoLoader.getPhotos()].sort((a, b) => takenAt(b) - takenAt(a))
+  const featured = newestFirst.filter(isFeaturedPhoto)
+
+  if (featured.length > FEATURED_COUNT) {
+    const shuffled = [...featured]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled.slice(0, FEATURED_COUNT)
+  }
+
+  const fill = newestFirst.filter((photo) => !isFeaturedPhoto(photo)).slice(0, FEATURED_COUNT - featured.length)
+  return [...featured, ...fill]
+}
 
 /**
  * Same navbar as the gallery (blur, height, logo/title/icons on the left) so moving
@@ -66,16 +99,33 @@ export const Component = () => {
   }, [])
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const photos = usePhotos()
+  const location = useLocation()
+  const navigationType = useNavigationType()
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Newest first.
-  const recent = useMemo(
-    () =>
-      [...photos]
-        .sort((a, b) => new Date(b.dateTaken).getTime() - new Date(a.dateTaken).getTime())
-        .slice(0, 12),
-    [photos],
-  )
+  // Chosen once per visit. Coming back from the photo viewer (its close button or the
+  // browser Back button) reuses the previous set instead of picking a new one.
+  const [{ featured, restored }] = useState(() => {
+    const cameFromViewer =
+      navigationType === 'POP' || (location.state as { restore?: boolean } | null)?.restore === true
+    if (cameFromViewer && lastIds) {
+      const byId = new Map(photoLoader.getPhotos().map((photo) => [photo.id, photo]))
+      const saved = lastIds.map((id) => byId.get(id)).filter((photo): photo is Photo => !!photo)
+      if (saved.length > 0) {
+        return { featured: saved, restored: true }
+      }
+    }
+    return { featured: pickFeatured(), restored: false }
+  })
+
+  useLayoutEffect(() => {
+    lastIds = featured.map((photo) => photo.id)
+    if (restored && scrollRef.current) {
+      scrollRef.current.scrollTop = lastScrollTop
+    } else {
+      lastScrollTop = 0
+    }
+  }, [featured, restored])
 
   const usageUrl = siteConfig.social?.usage?.trim()
   const avatarUrl = siteConfig.author.avatar
@@ -85,6 +135,7 @@ export const Component = () => {
     <>
       <WorkHeader />
       <m.div
+        ref={scrollRef}
         className="bg-background text-text fixed inset-0 z-10 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -155,7 +206,7 @@ export const Component = () => {
               </div>
             </div>
 
-            {/* Right: what I enjoy shooting + recent work */}
+            {/* Right: what I enjoy shooting + featured work */}
             <div>
               <h2 className="mb-4 text-xl font-semibold">Kinds of work I enjoy</h2>
               <ul className="grid gap-3 sm:grid-cols-2">
@@ -167,13 +218,21 @@ export const Component = () => {
                 ))}
               </ul>
 
-              {recent.length > 0 && (
+              {featured.length > 0 && (
                 <>
-                  <h2 className="mt-12 mb-4 text-xl font-semibold">Recent work</h2>
+                  <h2 className="mt-12 mb-4 text-xl font-semibold">Featured work</h2>
                   <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {recent.map((photo) => (
+                    {featured.map((photo) => (
                       <li key={photo.id}>
-                        <Link to={`/photos/${photo.id}`} className="block overflow-hidden rounded-xl">
+                        <Link
+                          to={`/photos/${photo.id}`}
+                          // Tells the photo viewer to come back here (not the homepage) when it is closed.
+                          state={{ returnTo: '/work' }}
+                          onClick={() => {
+                            lastScrollTop = scrollRef.current?.scrollTop ?? 0
+                          }}
+                          className="block overflow-hidden rounded-xl"
+                        >
                           <img
                             src={photo.thumbnailUrl}
                             alt={photo.title || 'Photograph'}
