@@ -71,7 +71,7 @@ const rowIconClassName = 'shrink-0 text-sm text-white/70'
 // (Keep the class names as full literals so the icon plugin can find them.)
 const icons = {
   time: <i className={`i-mingcute-time-line ${rowIconClassName}`} />,
-  copyright: <i className={`i-mingcute-copyright-line ${rowIconClassName}`} />,
+  copyright: <i className={`i-mingcute-information-line ${rowIconClassName}`} />,
   camera: <i className={`i-mingcute-camera-line ${rowIconClassName}`} />,
   equivalentFocalLength: <i className={`i-mingcute-fullscreen-line ${rowIconClassName}`} />,
   exposureProgram: <i className={`i-mingcute-settings-3-line ${rowIconClassName}`} />,
@@ -84,7 +84,16 @@ const icons = {
   city: <i className={`i-mingcute-location-line ${rowIconClassName}`} />,
 }
 
-const captureChipClassName = 'border-accent/20 bg-accent/10 flex h-6 items-center gap-2 rounded-md border px-2'
+// Exposure chips are static readouts, so they use a neutral fill and a squarer shape.
+// The accent-tinted full pills are reserved for things you can tap (tags).
+const captureChipClassName = 'flex h-8 items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3'
+const chipIconClassName = 'shrink-0 text-base text-white/70'
+
+interface CaptureChip {
+  key: string
+  icon: ReactNode
+  text: string
+}
 
 // Capture Mode rows are treated as noise when they show the camera's normal behaviour,
 // so they only appear when the value is different. Matched against the raw EXIF strings.
@@ -248,15 +257,49 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
         onTagClick(tag)
         return
       }
-      window.open(`/?tags=${encodeURIComponent(tag)}`, '_blank', 'noopener,noreferrer')
+      const url = `/?tags=${encodeURIComponent(tag)}`
+      if (isMobile) {
+        // Same tab on mobile, so each tap doesn't pile up another browser tab.
+        window.open(url, '_self')
+        return
+      }
+      window.open(url, '_blank', 'noopener,noreferrer')
     },
-    [onTagClick],
+    [onTagClick, isMobile],
   )
 
   const fx = formattedExifData
 
-  // Exposure chips (aperture / shutter / ISO / EV) sit at the top of the panel.
-  const showCaptureParameters = !!fx && !!(fx.aperture || fx.shutterSpeed || fx.iso || fx.exposureBias)
+  // Chips at the top of the panel: aperture, shutter, ISO, focal length, then exposure compensation.
+  // With an odd number of chips the last one spans the full width.
+  const captureChips: CaptureChip[] = []
+  if (fx?.aperture) {
+    captureChips.push({ key: 'aperture', icon: <TablerAperture className={chipIconClassName} />, text: fx.aperture })
+  }
+  if (fx?.shutterSpeed) {
+    captureChips.push({
+      key: 'shutter-speed',
+      icon: <MaterialSymbolsShutterSpeed className={chipIconClassName} />,
+      text: fx.shutterSpeed,
+    })
+  }
+  if (fx?.iso) {
+    captureChips.push({ key: 'iso', icon: <CarbonIsoOutline className={chipIconClassName} />, text: `ISO ${fx.iso}` })
+  }
+  if (fx?.focalLength) {
+    captureChips.push({
+      key: 'focal-length',
+      icon: <FocalLengthIcon className={chipIconClassName} />,
+      text: `${fx.focalLength}mm`,
+    })
+  }
+  if (fx?.exposureBias) {
+    captureChips.push({
+      key: 'exposure-bias',
+      icon: <MaterialSymbolsExposure className={chipIconClassName} />,
+      text: fx.exposureBias,
+    })
+  }
 
   // 35mm equivalent only matters when the sensor isn't full frame.
   const showEquivalentFocalLength = (() => {
@@ -266,47 +309,36 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
     return Math.abs(equivalent / actual - 1) > FULL_FRAME_TOLERANCE
   })()
 
-  // Capture Mode rows: the exposure program always shows; the rest only when not the default.
+  // Metering / white balance / flash only show when they're not the default.
   const showMeteringMode = !!fx?.meteringMode && !DEFAULT_METERING_MODE.test(String(exifData?.MeteringMode ?? ''))
   const showWhiteBalance = !!fx?.whiteBalance && !DEFAULT_WHITE_BALANCE.test(String(exifData?.WhiteBalance ?? ''))
   const showFlash = !!fx?.flash && !FLASH_DID_NOT_FIRE.test(String(exifData?.Flash ?? ''))
-  const showCaptureMode = !!fx?.exposureProgram || showMeteringMode || showWhiteBalance || showFlash
+
+  // The Capture Mode section only appears when one of those is non-default (it then also lists
+  // the exposure program). Otherwise the exposure program joins Device Information instead of
+  // sitting alone under its own header.
+  const showCaptureMode = showMeteringMode || showWhiteBalance || showFlash
+  const exposureProgramInDevice = !!fx?.exposureProgram && !showCaptureMode
 
   return (
     <ScrollArea mask rootClassName={rootClassName} viewportClassName={viewportClassName}>
-      <div className={clsxm('flex flex-col', isMobile ? 'gap-3' : 'gap-4')}>
-        {showCaptureParameters && fx && (
-          <ExifSection title={t('exif.capture.parameters')}>
-            <div className="grid grid-cols-2 gap-2">
-              {fx.aperture && (
-                <div className={captureChipClassName}>
-                  <TablerAperture className="text-sm text-white/70" />
-                  <span className="text-xs">{fx.aperture}</span>
-                </div>
-              )}
-
-              {fx.shutterSpeed && (
-                <div className={captureChipClassName}>
-                  <MaterialSymbolsShutterSpeed className="text-sm text-white/70" />
-                  <span className="text-xs">{fx.shutterSpeed}</span>
-                </div>
-              )}
-
-              {fx.iso && (
-                <div className={captureChipClassName}>
-                  <CarbonIsoOutline className="text-sm text-white/70" />
-                  <span className="text-xs">ISO {fx.iso}</span>
-                </div>
-              )}
-
-              {fx.exposureBias && (
-                <div className={captureChipClassName}>
-                  <MaterialSymbolsExposure className="text-sm text-white/70" />
-                  <span className="text-xs">{fx.exposureBias}</span>
-                </div>
-              )}
-            </div>
-          </ExifSection>
+      <div className={clsxm('flex flex-col', isMobile ? 'gap-4' : 'gap-5')}>
+        {/* No visible header: the chips explain themselves. The label stays for screen readers. */}
+        {captureChips.length > 0 && (
+          <div role="group" aria-label={t('exif.capture.parameters')} className="grid grid-cols-2 gap-2">
+            {captureChips.map((chip, index) => (
+              <div
+                key={chip.key}
+                className={clsxm(
+                  captureChipClassName,
+                  captureChips.length % 2 === 1 && index === captureChips.length - 1 && 'col-span-2',
+                )}
+              >
+                {chip.icon}
+                <span className="text-sm">{chip.text}</span>
+              </div>
+            ))}
+          </div>
         )}
 
         {fx && (fx.dateTime || fx.copyright) && (
@@ -329,7 +361,7 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
           </ExifSection>
         )}
 
-        {fx && (fx.camera || fx.lens || fx.focalLength) && (
+        {fx && (fx.camera || fx.lens || showEquivalentFocalLength || exposureProgramInDevice) && (
           <ExifSection title={t('exif.device.info')}>
             <ExifRowGroup>
               {fx.camera &&
@@ -358,19 +390,15 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                 ) : (
                   <Row icon={<LensElementIcon className={rowIconClassName} />} label={t('exif.lens')} value={fx.lens} />
                 ))}
-              {fx.focalLength && (
-                <Row
-                  icon={<FocalLengthIcon className={rowIconClassName} />}
-                  label={t('exif.focal.length.actual')}
-                  value={`${fx.focalLength}mm`}
-                />
-              )}
               {showEquivalentFocalLength && (
                 <Row
                   icon={icons.equivalentFocalLength}
                   label={t('exif.focal.length.equivalent')}
                   value={`${fx.focalLength35mm}mm`}
                 />
+              )}
+              {exposureProgramInDevice && (
+                <Row icon={icons.exposureProgram} label={t('exif.exposureprogram.title')} value={fx.exposureProgram} />
               )}
             </ExifRowGroup>
           </ExifSection>
