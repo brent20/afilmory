@@ -10,6 +10,7 @@ import { isCommandPaletteOpenAtom } from '~/atoms/app'
 import { siteConfig } from '~/config'
 import work from '~/config/work.json'
 import { useMobile } from '~/hooks/useMobile'
+import { photoAltText } from '~/lib/photo-alt'
 import { PageHeaderLeft } from '~/modules/gallery/PageHeader/PageHeaderLeft'
 import { ActionIconButton } from '~/modules/gallery/PageHeader/utils'
 
@@ -235,7 +236,7 @@ export const Component = () => {
                         >
                           <img
                             src={photo.thumbnailUrl}
-                            alt={photo.title || 'Photograph'}
+                            alt={photoAltText(photo)}
                             loading="lazy"
                             width={photo.width}
                             height={photo.height}

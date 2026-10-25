@@ -14,6 +14,7 @@ import {
 } from '~/icons'
 import { isMobileDevice } from '~/lib/device-viewport'
 import { ImageLoaderManager } from '~/lib/image-loader-manager'
+import { photoAltText } from '~/lib/photo-alt'
 import { formatExifData } from '~/modules/metadata'
 import type { PhotoManifest } from '~/types/photo'
 
@@ -190,7 +191,7 @@ export const MasonryPhotoItem = memo(({ data, width }: { data: PhotoManifest; wi
         <img
           ref={imageRef}
           src={data.thumbnailUrl}
-          alt={data.title}
+          alt={photoAltText(data)}
           loading="lazy"
           className={'absolute inset-0 h-full w-full object-cover duration-300 group-hover:scale-105'}
           onLoad={handleImageLoad}

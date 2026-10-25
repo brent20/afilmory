@@ -27,6 +27,7 @@ import { useMediaQuery } from 'usehooks-ts'
 import { injectConfig, siteConfig } from '~/config'
 import { useMobile } from '~/hooks/useMobile'
 import { deriveAccentFromSources } from '~/lib/color'
+import { photoAltText } from '~/lib/photo-alt'
 import type { LoadingIndicatorRef } from '~/modules/inspector/LoadingIndicator'
 import { LoadingIndicator } from '~/modules/inspector/LoadingIndicator'
 import { PhotoInspector } from '~/modules/inspector/PhotoInspector'
@@ -616,7 +617,7 @@ export const PhotoViewer = ({
                                     isCurrentImage={isCurrentImage}
                                     src={photo.originalUrl}
                                     thumbnailSrc={photo.thumbnailUrl}
-                                    alt={photo.title}
+                                    alt={photoAltText(photo)}
                                     width={isCurrentImage ? currentPhoto.width : undefined}
                                     height={isCurrentImage ? currentPhoto.height : undefined}
                                     className="h-full w-full object-contain"

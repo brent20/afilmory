@@ -1,4 +1,4 @@
-import { useMemo, startTransition } from 'react'
+import { useEffect, useMemo, startTransition } from 'react'
 import { m } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -46,6 +46,16 @@ export const Component = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const photos = usePhotos()
+
+  // This is an internal stats page: ask search engines not to index it while it is open.
+  // (public/_headers sends the same instruction from the server.)
+  useEffect(() => {
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex, nofollow'
+    document.head.append(meta)
+    return () => meta.remove()
+  }, [])
 
   const handleBack = () => {
     startTransition(() => {

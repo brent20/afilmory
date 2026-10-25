@@ -15,7 +15,8 @@ import { MANIFEST_PATH } from './__internal__/constants'
  *
  *  1. Rewrites dist/index.html with a proper title, description, canonical URL,
  *     Open Graph / Twitter tags and JSON-LD (Person, ProfessionalService, WebSite).
- *  2. Emits dist/work/index.html (the "book a shoot" page).
+ *  2. Emits dist/work/index.html (the "book a shoot" page) and
+ *     dist/photography-rights/index.html (usage / copyright page).
  *  3. Emits dist/photos/<id>/index.html for every photo, each with its own title,
  *     description, canonical URL, JSON-LD ImageObject (with license info so Google
  *     Images can show the "Licensable" badge) and plain-HTML content + internal links.
@@ -122,6 +123,26 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
     }
     writeHtml(path.join(outDir, 'work', 'index.html'), renderPage(template, workMeta, hireBody(hire, photos)))
 
+    // 2b. Photo usage / copyright page (also the `license` URL in every photo's ImageObject)
+    const rightsMeta: PageMeta = {
+      title: `Using my photos | ${siteConfig.name}`,
+      description: clip(
+        `How to share, license or request permission to use photographs by ${siteConfig.name}. Copyright information and contact details.`,
+        160,
+      ),
+      url: `${baseUrl}/photography-rights`,
+      image: defaultImage,
+      ogType: 'website',
+      jsonLd: [
+        person,
+        breadcrumb([['Home', `${baseUrl}/`], ['Using my photos', `${baseUrl}/photography-rights`]]),
+      ],
+    }
+    writeHtml(
+      path.join(outDir, 'photography-rights', 'index.html'),
+      renderPage(template, rightsMeta, rightsBody(hire)),
+    )
+
     // 3. Photo pages
     const sorted = [...photos].sort((a, b) => dateMs(b) - dateMs(a))
     let written = 0
@@ -156,7 +177,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       )
     }
 
-    console.info(`[seo-prerender] home, hire, ${written} photo pages, sitemap.xml, robots.txt`)
+    console.info(`[seo-prerender] home, hire, rights, ${written} photo pages, sitemap.xml, robots.txt`)
   }
 
   function loadPhotos(): PhotoManifestItem[] {
@@ -396,6 +417,16 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       + `</main>`
   }
 
+  function rightsBody(hire: HireConfig): string {
+    return `<main>${nav()}<h1>Using my photos</h1>`
+      + `<p>Unless otherwise stated, photographs by ${esc(siteConfig.name)} are protected by copyright.</p>`
+      + `<h2>Use of photographs</h2><p>Photographs may not be copied, reproduced, modified, distributed, published, displayed, sold, or used for commercial purposes without prior written permission.</p>`
+      + `<h2>Personal and non-commercial sharing</h2><p>You are welcome to share links to photographs or pages on this website. To repost an actual photograph, please ask for permission first.</p>`
+      + `<h2>Licensing and permission</h2><p>For licensing, commercial use, publication or prints, contact ${esc(siteConfig.name)} with the photograph, intended use and distribution details.</p>`
+      + (hire.email ? `<p>Email: <a href="mailto:${esc(hire.email)}">${esc(hire.email)}</a></p>` : '')
+      + `<p><a href="/work">Working together</a></p></main>`
+  }
+
   function photoBody(
     photo: PhotoManifestItem,
     name: string,
@@ -430,6 +461,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
     const urls = [
       `  <url>\n    <loc>${xml(`${baseUrl}/`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>1.0</priority>\n  </url>`,
       `  <url>\n    <loc>${xml(`${baseUrl}/work`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>0.9</priority>\n  </url>`,
+      `  <url>\n    <loc>${xml(`${baseUrl}/photography-rights`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>0.4</priority>\n  </url>`,
       ...photos
         .filter((p) => isSafeId(p.id))
         .map((p) => {

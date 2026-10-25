@@ -9,6 +9,13 @@ import { MANIFEST_PATH } from './__internal__/constants'
 
 const { generateRSSFeed } = await tsImport('@afilmory/utils', import.meta.url)
 
+/**
+ * Emits feed.xml (RSS).
+ *
+ * sitemap.xml and robots.txt are written by the SEO plugin (./seo.ts), which knows about
+ * every page (home, /work, /photography-rights and each photo). They used to be generated
+ * here as well, but this plugin's copy was always overwritten, so it was removed.
+ */
 export function createFeedSitemapPlugin(siteConfig: SiteConfig): Plugin {
   return {
     name: 'feed-sitemap-generator',
@@ -25,9 +32,6 @@ export function createFeedSitemapPlugin(siteConfig: SiteConfig): Plugin {
         // Generate RSS feed
         const rssXml = generateRSSFeed(sortedPhotos, siteConfig)
 
-        // Generate sitemap
-        const sitemapXml = generateSitemap(sortedPhotos, siteConfig)
-
         // Emit RSS feed
         this.emitFile({
           type: 'asset',
@@ -35,49 +39,10 @@ export function createFeedSitemapPlugin(siteConfig: SiteConfig): Plugin {
           source: rssXml,
         })
 
-        // Emit sitemap
-        this.emitFile({
-          type: 'asset',
-          fileName: 'sitemap.xml',
-          source: sitemapXml,
-        })
-
         console.info(`Generated RSS feed with ${sortedPhotos.length} photos`)
-        console.info(`Generated sitemap with ${sortedPhotos.length + 1} URLs`)
       } catch (error) {
-        console.error('Error generating RSS feed and sitemap:', error)
+        console.error('Error generating RSS feed:', error)
       }
     },
   }
-}
-
-function generateSitemap(photos: PhotoManifestItem[], config: SiteConfig): string {
-  const now = new Date().toISOString()
-
-  // Main page
-  const mainPageXml = `  <url>
-    <loc>${config.url}</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>`
-
-  // Photo pages
-  const photoUrls = photos
-    .map((photo) => {
-      const lastmod = new Date(photo.lastModified || photo.dateTaken).toISOString()
-      return `  <url>
-    <loc>${config.url}/photos/${encodeURIComponent(photo.id)}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>`
-    })
-    .join('\n')
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${mainPageXml}
-${photoUrls}
-</urlset>`
 }

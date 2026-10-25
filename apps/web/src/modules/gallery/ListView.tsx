@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useMobile } from '~/hooks/useMobile'
 import { useContextPhotos, usePhotoViewer } from '~/hooks/usePhotoViewer'
+import { photoAltText } from '~/lib/photo-alt'
 import { formatExifData } from '~/modules/metadata'
 import type { PhotoManifest } from '~/types/photo'
 
@@ -154,7 +155,7 @@ const PhotoCard = ({ photo }: { photo: PhotoManifest }) => {
         <img
           ref={imageRef}
           src={photo.thumbnailUrl || photo.originalUrl}
-          alt={photo.title || 'Photo'}
+          alt={photoAltText(photo)}
           className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105 lg:object-cover"
         />
         {/* Tags 覆盖在图片上 */}
