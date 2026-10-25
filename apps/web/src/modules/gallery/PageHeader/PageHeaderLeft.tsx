@@ -43,7 +43,6 @@ export const PageHeaderLeft = () => {
       : undefined
   const hasRss = true
   const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
-  const usageUrl = siteConfig.social?.usage?.trim() || siteConfig.author.url
 
   return (
     <div className="flex items-center gap-2">
@@ -86,7 +85,13 @@ export const PageHeaderLeft = () => {
             <i className="i-mingcute-mail-fill text-sm lg:text-base" />
           </Link>
         )}
-        {usageUrl && <SocialIconButton icon="i-mingcute-information-fill" title="Usage info" href={usageUrl} />}
+        <Link
+          to="/photography-rights"
+          className="inline-flex size-6 items-center justify-center rounded text-white/40 transition-colors duration-200 hover:text-white/80 lg:size-7"
+          title="Usage info"
+        >
+          <i className="i-mingcute-information-fill text-sm lg:text-base" />
+        </Link>
       </div>
     </div>
   )
