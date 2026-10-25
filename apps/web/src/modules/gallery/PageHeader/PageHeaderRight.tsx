@@ -119,7 +119,6 @@ const MoreActionMenu = () => {
       : undefined
   const hasRss = true
   const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
-  const usageUrl = siteConfig.social?.usage?.trim() || siteConfig.author.url
 
   return (
     <DropdownMenu>
@@ -189,14 +188,12 @@ const MoreActionMenu = () => {
             </Link>
           </DropdownMenuItem>
         )}
-        {usageUrl && (
-          <DropdownMenuItem asChild>
-            <a href={usageUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
-              <i className="i-mingcute-information-fill text-base" />
-              Usage info
-            </a>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem asChild>
+          <Link to="/photography-rights" className="flex items-center gap-2">
+            <i className="i-mingcute-information-fill text-base" />
+            Usage info
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
