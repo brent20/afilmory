@@ -86,8 +86,8 @@ const icons = {
 
 // Exposure chips are static readouts, so they use a neutral fill and a squarer shape.
 // The accent-tinted full pills are reserved for things you can tap (tags).
-const captureChipClassName = 'flex h-8 items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3'
-const chipIconClassName = 'shrink-0 text-base text-white/70'
+const captureChipClassName = 'flex h-6 items-center gap-2 rounded-md border border-white/10 bg-white/5 px-2'
+const chipIconClassName = 'shrink-0 text-sm text-white/70'
 
 interface CaptureChip {
   key: string
@@ -335,7 +335,7 @@ export const ExifPanelContent: FC<ExifPanelContentProps> = ({
                 )}
               >
                 {chip.icon}
-                <span className="text-sm">{chip.text}</span>
+                <span className="text-xs">{chip.text}</span>
               </div>
             ))}
           </div>
