@@ -97,7 +97,7 @@ const FLASH_DID_NOT_FIRE = /no flash|did not fire|not fired|^off$|^disabled$/i
 const FULL_FRAME_TOLERANCE = 0.03
 
 // GPS is shown rounded: 2 decimals is roughly 1 km. Change this to 3 for roughly 100 m.
-const GPS_DECIMALS = 2
+const GPS_DECIMALS = 3
 const roundCoordinate = (value: number) => Number(value.toFixed(GPS_DECIMALS))
 const formatCoordinate = (value: number, ref: string) => `${Math.abs(value).toFixed(GPS_DECIMALS)}° ${ref}`
 
