@@ -9,7 +9,8 @@ interface ExifSectionProps {
 
 export const ExifSection: FC<PropsWithChildren<ExifSectionProps>> = ({ title, className, ariaLabel, children }) => (
   <section className={clsxm('flex flex-col gap-2', className)} aria-label={ariaLabel}>
-    <h4 className="text-sm font-medium text-white/80">{title}</h4>
+    {/* Smaller, spaced-out caps so headers read as labels for a group, not as another row. */}
+    <h4 className="text-xs font-semibold tracking-wider text-white/80 uppercase">{title}</h4>
     {children}
   </section>
 )
