@@ -44,7 +44,6 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
       : undefined
   const hasRss = true
   const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
-  const usageUrl = siteConfig.social?.usage?.trim() || siteConfig.author.url
 
   return (
     <div
@@ -80,7 +79,7 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
         <h2 className="mt-1 mb-1 text-2xl font-semibold text-gray-900 dark:text-white">{siteConfig.name}</h2>
 
         {/* Social media links */}
-        {(githubUrl || twitterUrl || hasRss || contactUrl || usageUrl) && (
+        {(githubUrl || twitterUrl || hasRss || contactUrl) && (
           <div className="mt-1 mb-3 flex items-center justify-center gap-3">
             {githubUrl && (
               <a
@@ -123,17 +122,13 @@ export const MasonryHeaderMasonryItem = ({ style, className }: { style?: React.C
                 <i className="i-mingcute-mail-fill text-sm" />
               </Link>
             )}
-            {usageUrl && (
-              <a
-                href={usageUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
-                title="Usage info"
-              >
-                <i className="i-mingcute-information-fill text-sm" />
-              </a>
-            )}
+            <Link
+              to="/photography-rights"
+              className="text-text-secondary flex items-center justify-center p-2 duration-200 hover:text-[#E7E8E8]"
+              title="Usage info"
+            >
+              <i className="i-mingcute-information-fill text-sm" />
+            </Link>
           </div>
         )}
 
