@@ -219,19 +219,27 @@ export const usePhotoViewer = () => {
       triggerElement: null,
     }))
 
-    // Navigate back to gallery (creates history entry)
-    // Check if we're on the map path to preserve it
-    const isMapPath = location.pathname.includes('/map')
-    if (isMapPath) {
-      navigate(`/map${location.search}`)
+    // If the photo was opened from another page (e.g. the /work page), go back there.
+    // That page passes `state={{ returnTo: '/work' }}` on its photo links.
+    const returnTo = (location.state as { returnTo?: string } | null)?.returnTo
+    if (typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+      navigate(returnTo, { state: { restore: true } })
     }
     else {
-      navigate(`/${location.search}`)
+      // Navigate back to gallery (creates history entry)
+      // Check if we're on the map path to preserve it
+      const isMapPath = location.pathname.includes('/map')
+      if (isMapPath) {
+        navigate(`/map${location.search}`)
+      }
+      else {
+        navigate(`/${location.search}`)
+      }
     }
 
     // 恢复背景滚动
     document.body.style.overflow = ''
-  }, [navigate, location.search, location.pathname])
+  }, [navigate, location.search, location.pathname, location.state])
 
   const goToIndex = useCallback(
     (index: number) => {
@@ -248,13 +256,14 @@ export const usePhotoViewer = () => {
           photoId: photo.id,
         }))
 
-        // Create history entry for each photo navigation to support browser back/forward
-        navigate(`/photos/${photo.id}${location.search}`)
+        // Create history entry for each photo navigation to support browser back/forward.
+        // Keep the router state so "close" still returns to the page the viewer was opened from.
+        navigate(`/photos/${photo.id}${location.search}`, { state: location.state })
 
         trackView(photo.id)
       }
     },
-    [photos, navigate, location.search, urlPhotoId],
+    [photos, navigate, location.search, location.state, urlPhotoId],
   )
 
   return {
