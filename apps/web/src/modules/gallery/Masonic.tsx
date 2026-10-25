@@ -3,8 +3,14 @@ import { useScrollViewElement } from '@afilmory/ui'
 import { clearRequestTimeout, requestTimeout } from '@essentials/request-timeout'
 import { useWindowSize } from '@react-hook/window-size'
 import { isEqual, throttle } from 'es-toolkit/compat'
-import type { ContainerPosition, MasonryProps, MasonryScrollerProps, Positioner } from 'masonic'
-import { createResizeObserver, useMasonry, usePositioner, useScrollToIndex } from 'masonic'
+import type {
+  ContainerPosition,
+  MasonryProps,
+  MasonryScrollerProps,
+  Positioner,
+  UsePositionerOptions,
+} from 'masonic'
+import { createPositioner, createResizeObserver, useMasonry, useScrollToIndex } from 'masonic'
 import { useForceUpdate } from 'motion/react'
 import * as React from 'react'
 
@@ -109,7 +115,7 @@ export const Masonry = <Item,>(props: MasonryProps<Item> & { ref?: React.Ref<Mas
     prevKeysRef.current = nextKeys
   }
 
-  nextProps.positioner = usePositioner(nextProps, [layoutVersionRef.current, positionIndex])
+  nextProps.positioner = useSafePositioner(nextProps, [layoutVersionRef.current, positionIndex], props.items.length)
 
   nextProps.resizeObserver = useResizeObserver(nextProps.positioner)
   nextProps.scrollTop = scrollTop
@@ -226,6 +232,80 @@ function useContainerPosition(
   }, [containerPosition, elementRef])
 
   return containerPosition
+}
+
+/** Same column maths as masonic's own (unexported) getColumns. */
+function getColumns(
+  width = 0,
+  minimumWidth = 0,
+  gutter = 8,
+  columnCount?: number,
+  maxColumnCount?: number,
+  maxColumnWidth?: number,
+): [number, number] {
+  const count = columnCount || Math.min(Math.floor((width + gutter) / (minimumWidth + gutter)), maxColumnCount || Infinity) || 1
+  let computedWidth = Math.floor((width - gutter * (count - 1)) / count)
+  if (maxColumnWidth !== undefined && computedWidth > maxColumnWidth) computedWidth = maxColumnWidth
+  return [computedWidth, count]
+}
+
+/**
+ * Replacement for masonic's usePositioner(). The original, whenever the grid is resized, copies every
+ * cached position from the old positioner into the new one. If the photo list got shorter at the same
+ * time (opening /?tags=Birds shrinks the list from a full first batch down to just the Birds), the copy
+ * carries positions for photos that no longer exist, masonic then asks for items[i] past the end of the
+ * list, and the page crashes with "Cannot read properties of undefined (reading 'id')".
+ *
+ * This version never keeps more cached positions than there are photos, and it only carries cached
+ * heights over for a plain resize (not when the list itself changed).
+ */
+function useSafePositioner(
+  { width, columnWidth = 200, columnGutter = 0, rowGutter, columnCount, maxColumnCount, maxColumnWidth }: UsePositionerOptions,
+  deps: React.DependencyList,
+  itemCount: number,
+): Positioner {
+  const initPositioner = (): Positioner => {
+    const [computedColumnWidth, computedColumnCount] = getColumns(
+      width,
+      columnWidth,
+      columnGutter,
+      columnCount,
+      maxColumnCount,
+      maxColumnWidth,
+    )
+    return createPositioner(computedColumnCount, computedColumnWidth, columnGutter, rowGutter ?? columnGutter)
+  }
+
+  const positionerRef = React.useRef<Positioner | undefined>(undefined)
+  if (positionerRef.current === undefined) positionerRef.current = initPositioner()
+
+  const prevDeps = React.useRef(deps)
+  const opts = [width, columnWidth, columnGutter, rowGutter, columnCount, maxColumnCount, maxColumnWidth]
+  const prevOpts = React.useRef(opts)
+
+  const optsChanged = !opts.every((item, i) => prevOpts.current[i] === item)
+  const depsChanged = deps.length !== prevDeps.current.length || !deps.every((item, i) => prevDeps.current[i] === item)
+  // Safety net: a positioner that knows about more photos than the list has must never be used.
+  const hasStalePositions = positionerRef.current.size() > itemCount
+
+  if (optsChanged || depsChanged || hasStalePositions) {
+    const prevPositioner = positionerRef.current
+    const positioner = initPositioner()
+    prevDeps.current = deps
+    prevOpts.current = opts
+
+    if (optsChanged && !depsChanged && !hasStalePositions) {
+      const cacheSize = Math.min(prevPositioner.size(), itemCount)
+      for (let index = 0; index < cacheSize; index++) {
+        const pos = prevPositioner.get(index)
+        positioner.set(index, pos === undefined ? 0 : pos.height)
+      }
+    }
+
+    positionerRef.current = positioner
+  }
+
+  return positionerRef.current
 }
 
 function useResizeObserver(positioner: Positioner) {
