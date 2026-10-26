@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [main, master]
 
+# Least privilege: this workflow only needs to read the repository.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

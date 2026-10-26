@@ -131,7 +131,7 @@ const ShareSheet: ModalComponent<ShareSheetProps> = ({ photo, dismiss }) => {
         .replace('{url}', encodedUrl)
         .replace('{title}', encodedTitle)
         .replace('{text}', encodedText)
-      window.open(finalUrl, '_blank', 'width=600,height=600')
+      window.open(finalUrl, '_blank', 'noopener,noreferrer,width=600,height=600')
       dismiss()
     },
     [dismiss, shareLink, shareText, shareTitle],

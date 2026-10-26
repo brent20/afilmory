@@ -1,3 +1,10 @@
+# Applied to every static response. Geolocation stays allowed for the map's "locate me" button.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), payment=(), usb=(), geolocation=(self)
+
 /_s/*
   X-Robots-Tag: noindex, nofollow
   Cache-Control: no-store

@@ -6,8 +6,14 @@ import { useMemo, useState } from 'react'
 const JsonHighlight = ({ data }: { data: any }) => {
   const jsonString = JSON.stringify(data, null, 2)
 
+  // The output is rendered with dangerouslySetInnerHTML. Manifest strings (titles,
+  // descriptions, EXIF fields, tags) come from photo metadata, so escape HTML
+  // first; quotes are left alone because the regex below relies on them.
+  const escapeHtml = (value: string) =>
+    value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+
   const highlightJson = (str: string) => {
-    return str.replaceAll(
+    return escapeHtml(str).replaceAll(
       /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
       (match) => {
         let cls = 'text-zinc-500'
