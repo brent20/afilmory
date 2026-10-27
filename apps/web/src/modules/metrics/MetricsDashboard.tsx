@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import type { ColourFamily, ColourMetrics, PhotoMetrics } from '~/lib/metrics'
-import { APERTURE_BANDS, FOCAL_BANDS, ISO_BANDS } from '~/lib/metrics'
+import { APERTURE_BANDS, FOCAL_EQUIV_BANDS, ISO_BANDS } from '~/lib/metrics'
 import { MostViewedPhotos } from '~/modules/views/MostViewedPhotos'
 
 import {
@@ -12,8 +12,10 @@ import {
   ColumnChart,
   EmptyNote,
   Heatmap,
+  type HeatmapHover,
   Section,
   Segmented,
+  SilenceList,
   StackedColumns,
   StatTile,
   ZoomDotPlot,
@@ -44,6 +46,8 @@ const comfortLabel = (c: PhotoMetrics['fun']['comfort']) => {
   return parts.length ? parts.join(' · ') : '—'
 }
 
+const coverageNote = (share: number) => `Available for ${Math.round(share * 100)}% of archive`
+
 const countOf = (items: { count: number }[]) => items.reduce((sum, i) => sum + i.count, 0)
 
 export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; colour: ColourMetrics | null }) => {
@@ -51,6 +55,8 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
   const [gearShare, setGearShare] = useState(false)
   const [focalShare, setFocalShare] = useState(false)
   const [activeFamily, setActiveFamily] = useState<ColourFamily | null>(null)
+  const [timeHover, setTimeHover] = useState<HeatmapHover>(null)
+  const [settingsHover, setSettingsHover] = useState<HeatmapHover>(null)
 
   const { fun } = metrics
   const span =
@@ -144,16 +150,23 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
         </Card>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Card title="Time of day × aperture" note="Hover a square to trace its row and column.">
+          <Card
+            title="Time of day × aperture"
+            note="Hover a square to highlight its band and hour across both heatmaps."
+          >
             <Heatmap
               rowLabels={APERTURE_BANDS.map((b) => b.label)}
               colLabels={HOUR_LABELS}
               grid={metrics.apertureByHour}
               colLabelEvery={3}
               showNumbers={false}
-              rowLabelWidth={64}
+              rowLabelWidth={104}
               cellHeightClass="h-6"
               minCellWidth={14}
+              rowDim="aperture"
+              colDim="hour"
+              hover={timeHover}
+              onHover={setTimeHover}
             />
           </Card>
           <Card title="Time of day × ISO">
@@ -163,9 +176,13 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
               grid={metrics.isoByHour}
               colLabelEvery={3}
               showNumbers={false}
-              rowLabelWidth={64}
+              rowLabelWidth={104}
               cellHeightClass="h-6"
               minCellWidth={14}
+              rowDim="iso"
+              colDim="hour"
+              hover={timeHover}
+              onHover={setTimeHover}
             />
           </Card>
         </div>
@@ -178,50 +195,83 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
             <ColumnChart values={metrics.monthOfYear} labels={MONTH_LABELS} showValues />
           </Card>
         </div>
+
+        {metrics.daySpan && metrics.silences.length > 0 && (
+          <Card title="Longest silences" note="Stretches with no photograph">
+            <SilenceList silences={metrics.silences} span={metrics.daySpan} />
+          </Card>
+        )}
       </Section>
 
       {/* ----------------------------- How you shoot ---------------------------- */}
       <Section id="how-you-shoot" eyebrow="Shooting settings" title="How you shoot">
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <Card title="Focal length" note="35mm equivalent">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+          <Card title="Focal length (35mm equiv.)" note={coverageNote(metrics.coverage.focal)}>
             <BarList items={metrics.focalBars} />
           </Card>
-          <Card title="Aperture">
+          <Card title="Focal length (actual)" note={coverageNote(metrics.coverage.focalActual)}>
+            <BarList items={metrics.focalActualBars} />
+          </Card>
+          <Card title="Aperture" note={coverageNote(metrics.coverage.aperture)}>
             <BarList items={metrics.apertureBars} />
           </Card>
-          <Card title="ISO">
+          <Card title="ISO" note={coverageNote(metrics.coverage.iso)}>
             <BarList items={metrics.isoBars} />
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          <Card title="Focal length × aperture">
-            <Heatmap
-              rowLabels={FOCAL_BANDS.map((b) => b.label)}
-              colLabels={APERTURE_BANDS.map((b) => b.label.replace('f/', ''))}
-              grid={metrics.focalAperture}
-              rowLabelWidth={52}
-              minCellWidth={30}
-            />
-          </Card>
-          <Card title="Focal length × ISO">
-            <Heatmap
-              rowLabels={FOCAL_BANDS.map((b) => b.label)}
-              colLabels={ISO_BANDS.map((b) => b.label)}
-              grid={metrics.focalIso}
-              rowLabelWidth={52}
-              minCellWidth={30}
-            />
-          </Card>
-          <Card title="Aperture × ISO">
-            <Heatmap
-              rowLabels={APERTURE_BANDS.map((b) => b.label)}
-              colLabels={ISO_BANDS.map((b) => b.label)}
-              grid={metrics.apertureIso}
-              rowLabelWidth={64}
-              minCellWidth={30}
-            />
-          </Card>
+        <div className="space-y-3 pt-2">
+          <div>
+            <h3 className="text-text font-serif text-xl">Settings relationships</h3>
+            <p className="text-text-secondary mt-1 text-xs">
+              Based on {metrics.relationships.total.toLocaleString()} photos with focal length, aperture, and ISO.
+              Hover a square to trace the corresponding relationships across the other heatmaps.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+            <Card title="Focal length (35mm equiv.) × aperture">
+              <Heatmap
+                rowLabels={APERTURE_BANDS.map((b) => b.label)}
+                colLabels={FOCAL_EQUIV_BANDS.map((b) => b.short)}
+                colTitles={FOCAL_EQUIV_BANDS.map((b) => b.label)}
+                grid={metrics.relationships.focalAperture}
+                rowLabelWidth={104}
+                minCellWidth={34}
+                rowDim="aperture"
+                colDim="focal"
+                hover={settingsHover}
+                onHover={setSettingsHover}
+              />
+            </Card>
+            <Card title="Focal length (35mm equiv.) × ISO">
+              <Heatmap
+                rowLabels={ISO_BANDS.map((b) => b.label)}
+                colLabels={FOCAL_EQUIV_BANDS.map((b) => b.short)}
+                colTitles={FOCAL_EQUIV_BANDS.map((b) => b.label)}
+                grid={metrics.relationships.focalIso}
+                rowLabelWidth={56}
+                minCellWidth={34}
+                rowDim="iso"
+                colDim="focal"
+                hover={settingsHover}
+                onHover={setSettingsHover}
+              />
+            </Card>
+            <Card title="Aperture × ISO">
+              <Heatmap
+                rowLabels={ISO_BANDS.map((b) => b.label)}
+                colLabels={APERTURE_BANDS.map((b) => b.short)}
+                colTitles={APERTURE_BANDS.map((b) => b.label)}
+                grid={metrics.relationships.apertureIso}
+                rowLabelWidth={56}
+                minCellWidth={38}
+                rowDim="iso"
+                colDim="aperture"
+                hover={settingsHover}
+                onHover={setSettingsHover}
+              />
+            </Card>
+          </div>
         </div>
       </Section>
 

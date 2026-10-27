@@ -1,9 +1,9 @@
 import { clsxm } from '@afilmory/utils'
 import type { ReactNode } from 'react'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 
-import type { ColourFamily, Count, StackedSeries, ZoomLensUsage } from '~/lib/metrics'
-import { COLOUR_FAMILY_SWATCH } from '~/lib/metrics'
+import type { ColourFamily, Count, Silence, StackedSeries, ZoomLensUsage } from '~/lib/metrics'
+import { COLOUR_FAMILY_SWATCH, formatDay, formatSilenceLength } from '~/lib/metrics'
 
 /* -------------------------------------------------------------------------- */
 /*  Layout primitives                                                         */
@@ -120,7 +120,7 @@ export const ColumnChart = ({
           <div
             key={labels[i]}
             className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1"
-            title={`${labels[i]}: ${value.toLocaleString()}`}
+            title={`${labels[i]} · ${value.toLocaleString()}`}
           >
             {showValues && <span className="text-text-tertiary font-mono text-[10px]">{value || ''}</span>}
             <div
@@ -170,26 +170,47 @@ export const BarList = ({ items, limit }: { items: Count[]; limit?: number }) =>
 /*  Heatmap                                                                   */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Hover state shared between heatmaps: a map of dimension name → band index.
+ * A cell lights up when its row or column band matches the hovered band of that dimension,
+ * so a hover in one heatmap traces the same bands in any other heatmap that uses them.
+ */
+export type HeatmapHover = Record<string, number> | null
+
 export const Heatmap = ({
   rowLabels,
   colLabels,
+  colTitles,
   grid,
   colLabelEvery = 1,
   showNumbers = true,
   rowLabelWidth = 64,
   cellHeightClass = 'h-7',
   minCellWidth = 26,
+  rowDim = 'row',
+  colDim = 'col',
+  hover: controlledHover,
+  onHover,
 }: {
   rowLabels: string[]
   colLabels: string[]
+  /** Full column names for tooltips when the visible labels are abbreviated */
+  colTitles?: string[]
   grid: number[][]
   colLabelEvery?: number
   showNumbers?: boolean
   rowLabelWidth?: number
   cellHeightClass?: string
   minCellWidth?: number
+  rowDim?: string
+  colDim?: string
+  hover?: HeatmapHover
+  onHover?: (hover: HeatmapHover) => void
 }) => {
-  const [hover, setHover] = useState<{ r: number; c: number } | null>(null)
+  const [localHover, setLocalHover] = useState<HeatmapHover>(null)
+  const hover = controlledHover === undefined ? localHover : controlledHover
+  const setHover = onHover ?? setLocalHover
+
   const max = useMemo(() => Math.max(1, ...grid.flat()), [grid])
   const total = useMemo(() => grid.flat().reduce((a, b) => a + b, 0), [grid])
   if (total === 0) return <EmptyNote>No data yet.</EmptyNote>
@@ -208,88 +229,55 @@ export const Heatmap = ({
             key={label}
             className={clsxm(
               'text-center font-mono text-[10px] transition-colors',
-              hover?.c === c ? 'text-text' : 'text-text-tertiary',
+              hover?.[colDim] === c ? 'text-text' : 'text-text-tertiary',
             )}
           >
             {c % colLabelEvery === 0 ? label : ''}
           </div>
         ))}
         {grid.map((row, r) => (
-          <HeatmapRow
-            key={rowLabels[r]}
-            label={rowLabels[r]!}
-            row={row}
-            r={r}
-            max={max}
-            hover={hover}
-            setHover={setHover}
-            showNumbers={showNumbers}
-            cellHeightClass={cellHeightClass}
-            colLabels={colLabels}
-          />
+          <Fragment key={rowLabels[r]}>
+            <div
+              className={clsxm(
+                'flex items-center justify-end pr-2 text-right font-mono text-[10px] leading-tight transition-colors',
+                hover?.[rowDim] === r ? 'text-text' : 'text-text-tertiary',
+              )}
+            >
+              {rowLabels[r]}
+            </div>
+            {row.map((count, c) => {
+              const rowOn = hover?.[rowDim] === r
+              const colOn = hover?.[colDim] === c
+              return (
+                <div
+                  key={colLabels[c]}
+                  onMouseEnter={() => setHover({ [rowDim]: r, [colDim]: c })}
+                  title={`${rowLabels[r]} · ${colTitles?.[c] ?? colLabels[c]}: ${count.toLocaleString()}`}
+                  className={clsxm(
+                    'bg-fill-quaternary relative flex items-center justify-center rounded-[4px] transition-shadow',
+                    cellHeightClass,
+                    (rowOn || colOn) && 'ring-text-tertiary/50 ring-1',
+                    rowOn && colOn && 'ring-text ring-2',
+                  )}
+                >
+                  {count > 0 && (
+                    <div
+                      className="bg-accent absolute inset-0 rounded-[4px]"
+                      style={{ opacity: 0.18 + 0.82 * Math.sqrt(count / max) }}
+                    />
+                  )}
+                  {showNumbers && count > 0 && (
+                    <span className="text-text relative font-mono text-[10px] leading-none">{count}</span>
+                  )}
+                </div>
+              )
+            })}
+          </Fragment>
         ))}
       </div>
     </div>
   )
 }
-
-const HeatmapRow = ({
-  label,
-  row,
-  r,
-  max,
-  hover,
-  setHover,
-  showNumbers,
-  cellHeightClass,
-  colLabels,
-}: {
-  label: string
-  row: number[]
-  r: number
-  max: number
-  hover: { r: number; c: number } | null
-  setHover: (value: { r: number; c: number } | null) => void
-  showNumbers: boolean
-  cellHeightClass: string
-  colLabels: string[]
-}) => (
-  <>
-    <div
-      className={clsxm(
-        'flex items-center justify-end pr-2 font-mono text-[10px] transition-colors',
-        hover?.r === r ? 'text-text' : 'text-text-tertiary',
-      )}
-    >
-      {label}
-    </div>
-    {row.map((count, c) => {
-      const active = hover && (hover.r === r || hover.c === c)
-      return (
-        <div
-          key={colLabels[c]}
-          onMouseEnter={() => setHover({ r, c })}
-          title={`${label} · ${colLabels[c]}: ${count.toLocaleString()}`}
-          className={clsxm(
-            'bg-fill-quaternary relative flex items-center justify-center rounded-[4px] transition-shadow',
-            cellHeightClass,
-            active && 'ring-text-tertiary/50 ring-1',
-          )}
-        >
-          {count > 0 && (
-            <div
-              className="bg-accent absolute inset-0 rounded-[4px]"
-              style={{ opacity: 0.18 + 0.82 * Math.sqrt(count / max) }}
-            />
-          )}
-          {showNumbers && count > 0 && (
-            <span className="text-text relative font-mono text-[10px] leading-none">{count}</span>
-          )}
-        </div>
-      )
-    })}
-  </>
-)
 
 /* -------------------------------------------------------------------------- */
 /*  Stacked columns by year                                                   */
@@ -545,3 +533,51 @@ const ColourYearRow = ({ year, row, active }: { year: number; row: ColourFamily[
     ))}
   </>
 )
+
+/* -------------------------------------------------------------------------- */
+/*  Longest silences                                                          */
+/* -------------------------------------------------------------------------- */
+
+export const SilenceList = ({
+  silences,
+  span,
+}: {
+  silences: Silence[]
+  span: { first: number; last: number }
+}) => {
+  const length = Math.max(1, span.last - span.first)
+  const yearOf = (day: number) => new Date(day * 86_400_000).getUTCFullYear()
+  return (
+    <div className="space-y-5">
+      <div>
+        <div className="bg-fill-quaternary relative h-2 overflow-hidden rounded-full">
+          {silences.map((silence) => (
+            <div
+              key={silence.fromDay}
+              className="bg-accent absolute top-0 h-full opacity-70"
+              style={{
+                left: `${((silence.fromDay - span.first) / length) * 100}%`,
+                width: `${Math.max(0.6, (silence.days / length) * 100)}%`,
+              }}
+              title={`${formatSilenceLength(silence.days)} · ${formatDay(silence.fromDay)} → ${formatDay(silence.toDay)}`}
+            />
+          ))}
+        </div>
+        <div className="text-text-tertiary mt-1.5 flex justify-between font-mono text-[10px]">
+          <span>{yearOf(span.first)}</span>
+          <span>{yearOf(span.last)}</span>
+        </div>
+      </div>
+      <ol className="divide-border divide-y">
+        {silences.map((silence) => (
+          <li key={silence.fromDay} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2.5">
+            <span className="text-text font-serif text-lg">{formatSilenceLength(silence.days)}</span>
+            <span className="text-text-secondary text-xs">
+              {formatDay(silence.fromDay)} → {formatDay(silence.toDay)}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  )
+}

@@ -7,39 +7,51 @@ import { thumbHashToRGBA } from 'thumbhash'
 /* -------------------------------------------------------------------------- */
 
 export interface Band {
+  /** Full label, e.g. "35–49mm · normal" */
   label: string
+  /** Compact label for axes and legends */
+  short: string
   /** Inclusive upper bound. */
   max: number
 }
 
-export const FOCAL_BANDS: Band[] = [
-  { label: '<18mm', max: 17 },
-  { label: '18–23', max: 23 },
-  { label: '24–34', max: 34 },
-  { label: '35–49', max: 49 },
-  { label: '50–69', max: 69 },
-  { label: '70–99', max: 99 },
-  { label: '100mm+', max: Infinity },
+/** 35mm-equivalent focal length. */
+export const FOCAL_EQUIV_BANDS: Band[] = [
+  { label: '<24mm · ultra-wide', short: '<24', max: 23 },
+  { label: '24–34mm · wide', short: '24–34', max: 34 },
+  { label: '35–49mm · normal', short: '35–49', max: 49 },
+  { label: '50–84mm · short tele', short: '50–84', max: 84 },
+  { label: '85–134mm · tele', short: '85–134', max: 134 },
+  { label: '135mm+ · long tele', short: '135+', max: Infinity },
+]
+
+/** Focal length as marked on the lens. */
+export const FOCAL_ACTUAL_BANDS: Band[] = [
+  { label: '<18mm · ultra-wide', short: '<18mm', max: 17 },
+  { label: '18–22mm · wide', short: '18–22', max: 22 },
+  { label: '23–34mm · normal', short: '23–34', max: 34 },
+  { label: '35–55mm · short tele', short: '35–55', max: 55 },
+  { label: '56–99mm · tele', short: '56–99', max: 99 },
+  { label: '100mm+ · long tele', short: '100mm+', max: Infinity },
 ]
 
 export const APERTURE_BANDS: Band[] = [
-  { label: 'f/1.8', max: 1.85 },
-  { label: 'f/2–2.8', max: 2.85 },
-  { label: 'f/3.2–4', max: 4.05 },
-  { label: 'f/4.5–5.6', max: 5.65 },
-  { label: 'f/6.3–8', max: 8.05 },
-  { label: 'f/9–11', max: 11.05 },
-  { label: 'f/13+', max: Infinity },
+  { label: 'f/1.8 and faster', short: 'f/1.8', max: 1.9 },
+  { label: 'around f/2', short: 'f/2', max: 2.4 },
+  { label: 'around f/2.8', short: 'f/2.8', max: 3.4 },
+  { label: 'around f/4', short: 'f/4', max: 4.7 },
+  { label: 'around f/5.6', short: 'f/5.6', max: 6.7 },
+  { label: 'f/8–11', short: 'f/8–11', max: 12 },
+  { label: 'f/16+', short: 'f/16+', max: Infinity },
 ]
 
 export const ISO_BANDS: Band[] = [
-  { label: '≤200', max: 200 },
-  { label: '400', max: 400 },
-  { label: '800', max: 800 },
-  { label: '1600', max: 1600 },
-  { label: '3200', max: 3200 },
-  { label: '6400', max: 6400 },
-  { label: '12800+', max: Infinity },
+  { label: '≤200', short: '≤200', max: 200 },
+  { label: '400', short: '400', max: 400 },
+  { label: '800', short: '800', max: 800 },
+  { label: '1600', short: '1600', max: 1600 },
+  { label: '3200', short: '3200', max: 3200 },
+  { label: '6400+', short: '6400+', max: Infinity },
 ]
 
 export const bandIndex = (value: number | null, bands: Band[]): number => {
@@ -159,11 +171,13 @@ export interface PhotoRecord {
   hour: number | null
   /** 0 = Sunday */
   dow: number | null
+  /** Calendar day as days since 1970-01-01 (clock date, no timezone conversion) */
+  day: number | null
   camera: string | null
   lens: string | null
-  /** 35mm-equivalent focal length, falling back to the actual one */
+  /** 35mm-equivalent focal length (from EXIF, or actual × crop factor when only that is recorded) */
   focal: number | null
-  /** Actual focal length as written on the lens */
+  /** Actual focal length as marked on the lens */
   focalActual: number | null
   aperture: number | null
   iso: number | null
@@ -185,10 +199,11 @@ const parseDate = (value: unknown) => {
   if (!m) return null
   const year = Number(m[1])
   const month = Number(m[2])
-  const day = Number(m[3])
+  const dayOfMonth = Number(m[3])
   const hour = Number(m[4])
-  if (year < 1990 || month < 1 || month > 12) return null
-  return { year, month, hour, dow: new Date(Date.UTC(year, month - 1, day)).getUTCDay() }
+  if (year < 1990 || month < 1 || month > 12 || dayOfMonth < 1 || dayOfMonth > 31) return null
+  const utc = Date.UTC(year, month - 1, dayOfMonth)
+  return { year, month, hour, dow: new Date(utc).getUTCDay(), day: Math.floor(utc / 86_400_000) }
 }
 
 const cameraName = (make?: string, model?: string): string | null => {
@@ -204,18 +219,20 @@ export const toRecords = (photos: PhotoManifestItem[]): PhotoRecord[] =>
     const exif = photo.exif
     const date = parseDate(exif?.DateTimeOriginal) ?? parseDate(photo.dateTaken)
     const actual = parseNumber(exif?.FocalLength)
-    const equiv = parseNumber(exif?.FocalLengthIn35mmFormat)
-    const focal = equiv ?? actual
+    const scale = parseNumber(exif?.ScaleFactor35efl)
+    const equiv =
+      parseNumber(exif?.FocalLengthIn35mmFormat) ?? (actual !== null && scale !== null && scale > 0 ? actual * scale : null)
     return {
       id: photo.id,
       year: date?.year ?? null,
       month: date?.month ?? null,
       hour: date?.hour ?? null,
       dow: date?.dow ?? null,
+      day: date?.day ?? null,
       camera: cameraName(exif?.Make, exif?.Model),
       lens: exif?.LensModel?.trim() || null,
-      focal: focal === null ? null : Math.round(focal),
-      focalActual: (actual ?? equiv) === null ? null : Math.round((actual ?? equiv)!),
+      focal: equiv === null ? null : Math.round(equiv),
+      focalActual: actual === null ? null : Math.round(actual),
       aperture: parseNumber(exif?.FNumber),
       iso: parseNumber(exif?.ISO),
       country: photo.location?.country ?? null,
@@ -369,6 +386,14 @@ export interface ZoomLensUsage {
   maxDot: number
 }
 
+export interface Silence {
+  /** Last day with a photo before the gap (days since epoch) */
+  fromDay: number
+  /** First day with a photo after the gap */
+  toDay: number
+  days: number
+}
+
 export interface PhotoMetrics {
   total: number
   datedTotal: number
@@ -398,12 +423,24 @@ export interface PhotoMetrics {
   apertureByHour: number[][]
   isoByHour: number[][]
 
+  /** Share (0–1) of all photos that carry each value */
+  coverage: { focal: number; focalActual: number; aperture: number; iso: number }
   focalBars: Count[]
+  focalActualBars: Count[]
   apertureBars: Count[]
   isoBars: Count[]
-  focalAperture: number[][]
-  focalIso: number[][]
-  apertureIso: number[][]
+
+  /**
+   * Relationship grids use only photos that have focal length, aperture AND ISO.
+   * Rows come first in each name: focalAperture is [aperture][focal], focalIso is [iso][focal],
+   * apertureIso is [iso][aperture].
+   */
+  relationships: { total: number; focalAperture: number[][]; focalIso: number[][]; apertureIso: number[][] }
+
+  /** Longest stretches with no photograph, longest first */
+  silences: Silence[]
+  /** First and last photographed day (days since epoch) */
+  daySpan: { first: number; last: number } | null
 
   gearBodies: StackedSeries
   gearLenses: StackedSeries
@@ -419,6 +456,21 @@ const bandCounts = (records: PhotoRecord[], valueOf: (r: PhotoRecord) => number 
   }
   return counts
 }
+
+const MIN_SILENCE_DAYS = 30
+const SILENCES_SHOWN = 5
+
+/** "3.4 years", "2 years", "8 months", "12 days" */
+export const formatSilenceLength = (days: number): string => {
+  if (days < 60) return `${days} days`
+  if (days < 365) return `${Math.round(days / 30.44)} months`
+  const years = Math.round((days / 365.25) * 10) / 10
+  return `${years} ${years === 1 ? 'year' : 'years'}`
+}
+
+/** "15 December 2011" from a days-since-epoch value */
+export const formatDay = (day: number): string =>
+  new Date(day * 86_400_000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 
 export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
   const records = toRecords(photos)
@@ -493,8 +545,20 @@ export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
 
   const fAp = (r: PhotoRecord) => bandIndex(r.aperture, APERTURE_BANDS)
   const fIso = (r: PhotoRecord) => bandIndex(r.iso, ISO_BANDS)
-  const fFocal = (r: PhotoRecord) => bandIndex(r.focal, FOCAL_BANDS)
+  const fFocal = (r: PhotoRecord) => bandIndex(r.focal, FOCAL_EQUIV_BANDS)
   const fHour = (r: PhotoRecord) => r.hour ?? -1
+
+  const share = (has: (r: PhotoRecord) => boolean) => (records.length ? records.filter(has).length / records.length : 0)
+  const complete = records.filter((r) => r.focal !== null && r.aperture !== null && r.iso !== null)
+
+  // longest silences: gaps between consecutive photographed days
+  const photoDays = [...new Set(records.flatMap((r) => (r.day === null ? [] : [r.day])))].sort((a, b) => a - b)
+  const silences: Silence[] = []
+  for (let i = 1; i < photoDays.length; i++) {
+    const days = photoDays[i]! - photoDays[i - 1]!
+    if (days >= MIN_SILENCE_DAYS) silences.push({ fromDay: photoDays[i - 1]!, toDay: photoDays[i]!, days })
+  }
+  silences.sort((a, b) => b.days - a.days)
 
   const modeAperture = mode(records.map((r) => r.aperture))
   const modeIso = mode(records.map((r) => r.iso))
@@ -528,22 +592,36 @@ export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
     apertureByHour: crossTab(records, fAp, fHour, APERTURE_BANDS.length, 24),
     isoByHour: crossTab(records, fIso, fHour, ISO_BANDS.length, 24),
 
-    focalBars: bandCounts(records, (r) => r.focal, FOCAL_BANDS),
+    coverage: {
+      focal: share((r) => r.focal !== null),
+      focalActual: share((r) => r.focalActual !== null),
+      aperture: share((r) => r.aperture !== null),
+      iso: share((r) => r.iso !== null),
+    },
+    focalBars: bandCounts(records, (r) => r.focal, FOCAL_EQUIV_BANDS),
+    focalActualBars: bandCounts(records, (r) => r.focalActual, FOCAL_ACTUAL_BANDS),
     apertureBars: bandCounts(records, (r) => r.aperture, APERTURE_BANDS),
     isoBars: bandCounts(records, (r) => r.iso, ISO_BANDS),
-    focalAperture: crossTab(records, fFocal, fAp, FOCAL_BANDS.length, APERTURE_BANDS.length),
-    focalIso: crossTab(records, fFocal, fIso, FOCAL_BANDS.length, ISO_BANDS.length),
-    apertureIso: crossTab(records, fAp, fIso, APERTURE_BANDS.length, ISO_BANDS.length),
+
+    relationships: {
+      total: complete.length,
+      focalAperture: crossTab(complete, fAp, fFocal, APERTURE_BANDS.length, FOCAL_EQUIV_BANDS.length),
+      focalIso: crossTab(complete, fIso, fFocal, ISO_BANDS.length, FOCAL_EQUIV_BANDS.length),
+      apertureIso: crossTab(complete, fIso, fAp, ISO_BANDS.length, APERTURE_BANDS.length),
+    },
+
+    silences: silences.slice(0, SILENCES_SHOWN),
+    daySpan: photoDays.length ? { first: photoDays[0]!, last: photoDays.at(-1)! } : null,
 
     gearBodies: stackByYear(records, (r) => r.camera, { maxSeries: 6 }),
     gearLenses: stackByYear(records, (r) => r.lens, { maxSeries: 6 }),
     focalOverTime: stackByYear(
       records,
       (r) => {
-        const i = bandIndex(r.focal, FOCAL_BANDS)
-        return i >= 0 ? FOCAL_BANDS[i]!.label : null
+        const i = bandIndex(r.focalActual, FOCAL_ACTUAL_BANDS)
+        return i >= 0 ? FOCAL_ACTUAL_BANDS[i]!.short : null
       },
-      { order: FOCAL_BANDS.map((b) => b.label) },
+      { order: FOCAL_ACTUAL_BANDS.map((b) => b.short) },
     ),
     zoomUsage,
   }
