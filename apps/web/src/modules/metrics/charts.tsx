@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { Fragment, useMemo, useState } from 'react'
 
 import type { ColourFamily, Count, Silence, StackedSeries, ZoomLensUsage } from '~/lib/metrics'
-import { COLOUR_FAMILY_SWATCH, formatDay, formatSilenceLength } from '~/lib/metrics'
+import { COLOUR_FAMILY_SWATCH, formatDay, formatMonthYear, formatSilenceLength } from '~/lib/metrics'
 
 /* -------------------------------------------------------------------------- */
 /*  Layout primitives                                                         */
@@ -101,12 +101,15 @@ export const EmptyNote = ({ children }: { children: ReactNode }) => (
 export const ColumnChart = ({
   values,
   labels,
+  titles,
   labelEvery = 1,
   showValues = false,
   heightClass = 'h-36',
 }: {
   values: number[]
   labels: string[]
+  /** Full names for tooltips when the visible labels are abbreviated */
+  titles?: string[]
   labelEvery?: number
   showValues?: boolean
   heightClass?: string
@@ -120,7 +123,7 @@ export const ColumnChart = ({
           <div
             key={labels[i]}
             className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1"
-            title={`${labels[i]} · ${value.toLocaleString()}`}
+            title={`${titles?.[i] ?? labels[i]} · ${value.toLocaleString()}`}
           >
             {showValues && <span className="text-text-tertiary font-mono text-[10px]">{value || ''}</span>}
             <div
@@ -132,7 +135,10 @@ export const ColumnChart = ({
       </div>
       <div className="flex gap-[3px]">
         {labels.map((label, i) => (
-          <span key={label} className="text-text-tertiary min-w-0 flex-1 text-center font-mono text-[10px]">
+          <span
+            key={label}
+            className="text-text-tertiary flex min-w-0 flex-1 justify-center font-mono text-[10px] whitespace-nowrap"
+          >
             {i % labelEvery === 0 ? label : ''}
           </span>
         ))}
@@ -228,7 +234,7 @@ export const Heatmap = ({
           <div
             key={label}
             className={clsxm(
-              'text-center font-mono text-[10px] transition-colors',
+              'flex justify-center font-mono text-[10px] whitespace-nowrap transition-colors',
               hover?.[colDim] === c ? 'text-text' : 'text-text-tertiary',
             )}
           >
@@ -520,7 +526,7 @@ const ColourYearRow = ({ year, row, active }: { year: number; row: ColourFamily[
       <div
         key={mi}
         className="bg-fill-quaternary flex min-h-9 flex-wrap content-start gap-[2px] rounded-[4px] p-[3px]"
-        title={`${year}-${String(mi + 1).padStart(2, '0')}: ${families.length} photo${families.length === 1 ? '' : 's'}`}
+        title={`${formatMonthYear(year, mi + 1)}: ${families.length} photo${families.length === 1 ? '' : 's'}`}
       >
         {families.slice(0, MAX_DOTS_PER_MONTH).map((family, i) => (
           <span

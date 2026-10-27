@@ -468,9 +468,39 @@ export const formatSilenceLength = (days: number): string => {
   return `${years} ${years === 1 ? 'year' : 'years'}`
 }
 
-/** "15 December 2011" from a days-since-epoch value */
-export const formatDay = (day: number): string =>
-  new Date(day * 86_400_000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+/*
+ * Date and time formats on the metrics page are always US style, regardless of the
+ * visitor's browser locale: "December 15, 2011" and "4 PM".
+ */
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+/** "December 15, 2011" from a days-since-epoch value */
+export const formatDay = (day: number): string => {
+  const date = new Date(day * 86_400_000)
+  return `${MONTH_NAMES[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`
+}
+
+/** "March 2025" */
+export const formatMonthYear = (year: number, month: number): string => `${MONTH_NAMES[month - 1]} ${year}`
+
+/** 0–23 → "12 AM", "4 PM" */
+export const formatHour = (hour: number): string => `${hour % 12 === 0 ? 12 : hour % 12} ${hour < 12 ? 'AM' : 'PM'}`
+
+/** 0–23 → "12a", "4p" (compact axis labels) */
+export const formatHourShort = (hour: number): string => `${hour % 12 === 0 ? 12 : hour % 12}${hour < 12 ? 'a' : 'p'}`
 
 export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
   const records = toRecords(photos)

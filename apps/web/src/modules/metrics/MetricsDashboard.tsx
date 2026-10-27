@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import type { ColourFamily, ColourMetrics, PhotoMetrics } from '~/lib/metrics'
-import { APERTURE_BANDS, FOCAL_EQUIV_BANDS, ISO_BANDS } from '~/lib/metrics'
+import { APERTURE_BANDS, FOCAL_EQUIV_BANDS, formatHour, formatHourShort, ISO_BANDS } from '~/lib/metrics'
 import { MostViewedPhotos } from '~/modules/views/MostViewedPhotos'
 
 import {
@@ -32,10 +32,11 @@ const NAV = [
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => String(h).padStart(2, '0'))
+const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => formatHourShort(h))
+const HOUR_TITLES = Array.from({ length: 24 }, (_, h) => formatHour(h))
 
 const pct = (value: number | null) => (value === null ? '—' : `${Math.round(value * 100)}%`)
-const hourLabel = (h: number | null) => (h === null ? '—' : `${String(h).padStart(2, '0')}:00`)
+const hourLabel = (h: number | null) => (h === null ? '—' : formatHour(h))
 
 const comfortLabel = (c: PhotoMetrics['fun']['comfort']) => {
   const parts = [
@@ -113,7 +114,7 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
             hint={fun.primeShare === null ? undefined : `${pct(1 - fun.primeShare)} zoom`}
           />
           <StatTile label="Comfort settings" value={comfortLabel(fun.comfort)} hint="Most common values" />
-          <StatTile label="Night owl" value={pct(fun.nightShare)} hint="Shot between 21:00 and 05:00" />
+          <StatTile label="Night owl" value={pct(fun.nightShare)} hint="Shot between 9 PM and 5 AM" />
           <StatTile
             label="Colour mood"
             value={colour ? (colour.families[0]?.name ?? '—') : '…'}
@@ -146,7 +147,7 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
           title="Time of day"
           note={fun.peakHour === null ? undefined : `Busiest hour: ${hourLabel(fun.peakHour)} (camera local time).`}
         >
-          <ColumnChart values={metrics.hours} labels={HOUR_LABELS} labelEvery={3} />
+          <ColumnChart values={metrics.hours} labels={HOUR_LABELS} titles={HOUR_TITLES} labelEvery={3} />
         </Card>
 
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -157,6 +158,7 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
             <Heatmap
               rowLabels={APERTURE_BANDS.map((b) => b.label)}
               colLabels={HOUR_LABELS}
+              colTitles={HOUR_TITLES}
               grid={metrics.apertureByHour}
               colLabelEvery={3}
               showNumbers={false}
@@ -173,6 +175,7 @@ export const MetricsDashboard = ({ metrics, colour }: { metrics: PhotoMetrics; c
             <Heatmap
               rowLabels={ISO_BANDS.map((b) => b.label)}
               colLabels={HOUR_LABELS}
+              colTitles={HOUR_TITLES}
               grid={metrics.isoByHour}
               colLabelEvery={3}
               showNumbers={false}
