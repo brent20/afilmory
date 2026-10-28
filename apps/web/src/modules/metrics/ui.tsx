@@ -38,8 +38,13 @@ export const Section = ({
       transition={Spring.presets.smooth}
     >
       <header>
-        <p className="text-text-tertiary text-xs font-medium tracking-wider uppercase">{eyebrow}</p>
-        <h2 id={`${id}-title`} className="text-text mt-1 text-xl font-semibold tracking-tight md:text-2xl">
+        {eyebrow !== title && (
+          <p className="text-text-tertiary text-xs font-medium tracking-wider uppercase">{eyebrow}</p>
+        )}
+        <h2
+          id={`${id}-title`}
+          className={clsxm('text-text text-xl font-semibold tracking-tight md:text-2xl', eyebrow !== title && 'mt-1')}
+        >
           {title}
         </h2>
         {intro && <p className="text-text-secondary mt-2 max-w-2xl text-sm leading-relaxed">{intro}</p>}

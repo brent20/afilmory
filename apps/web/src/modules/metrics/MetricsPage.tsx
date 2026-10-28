@@ -85,8 +85,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
 
       <div className="mx-auto max-w-7xl px-4 pt-24 pb-24 md:px-8">
         <header className="mb-10 text-center">
-          <p className="text-text-tertiary text-xs font-semibold tracking-[0.3em] uppercase">{t('metrics.hero.eyebrow')}</p>
-          <h1 className="text-text mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{t('metrics.hero.title', { name: owner })}</h1>
+          <h1 className="text-text text-3xl font-bold tracking-tight sm:text-4xl">{t('metrics.hero.title', { name: owner })}</h1>
           <p className="text-text-secondary mx-auto mt-4 max-w-2xl text-base leading-relaxed">
             {t('metrics.hero.intro', { name: owner })}
           </p>

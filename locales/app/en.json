@@ -481,7 +481,6 @@
   "metrics.photos_other": "{{count}} photos",
   "metrics.readout.idle": "Tap or hover for details",
   "metrics.howto.label": "How to read this:",
-  "metrics.hero.eyebrow": "By the numbers",
   "metrics.hero.title": "{{name}}'s photography, by the numbers",
   "metrics.hero.intro": "A look behind the lens: when, where and how {{name}} shoots, what gear gets used, and the habits that show up across the whole portfolio. Everything here is worked out from the photos themselves.",
   "metrics.nav.label": "Sections",
