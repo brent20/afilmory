@@ -205,6 +205,8 @@ const SHUTTER_BANDS = [
 /*  Computation                                                               */
 /* -------------------------------------------------------------------------- */
 
+const HOME = { place: 'Omaha, Nebraska', lat: 41.2565, lon: -95.9345 }
+
 const OUTING_GAP_MINUTES = 240
 const MAX_GEAR_ROWS = 12
 
@@ -309,24 +311,12 @@ export function computeExtras(metrics: PhotoMetrics): ExtraMetrics {
   const located = records.filter(r => r.lat !== null && r.lon !== null)
   const placeRecords = records.filter(r => r.place !== null)
   const placeCounts = countBy(placeRecords, r => r.place)
-  let home: ExtraMetrics['travel']['home'] = null
-  if (placeCounts[0]) {
-    const homeRecords = located.filter(r => r.place === placeCounts[0]!.name)
-    if (homeRecords.length > 0) {
-      home = {
-        place: placeCounts[0].name,
-        lat: homeRecords.reduce((sum, r) => sum + r.lat!, 0) / homeRecords.length,
-        lon: homeRecords.reduce((sum, r) => sum + r.lon!, 0) / homeRecords.length,
-      }
-    }
-  }
+  const home: ExtraMetrics['travel']['home'] = HOME
   let farthest: ExtraMetrics['travel']['farthest'] = null
-  if (home) {
-    for (const r of located) {
-      const miles = distanceMiles(home.lat, home.lon, r.lat!, r.lon!)
-      if (miles >= 1 && (farthest === null || miles > farthest.miles)) {
-        farthest = { photoId: r.id, place: r.place, miles }
-      }
+  for (const r of located) {
+    const miles = distanceMiles(home.lat, home.lon, r.lat!, r.lon!)
+    if (miles >= 1 && (farthest === null || miles > farthest.miles)) {
+      farthest = { photoId: r.id, place: r.place, miles }
     }
   }
   const highestRecord = pick(records, r => r.altitudeFt, maxOf)

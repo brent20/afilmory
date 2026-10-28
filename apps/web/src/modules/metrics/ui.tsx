@@ -227,10 +227,10 @@ export const StatTile = ({
   const photo = findPhoto(photoId)
   const body = count === undefined ? value : <CountUp value={count} />
   return (
-    <div className="bg-material-medium/40 border-fill-tertiary relative flex min-w-0 items-center gap-3 rounded-2xl border p-5">
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-text-tertiary text-[11px] font-semibold tracking-[0.2em] uppercase">{label}</span>
-        <span className="text-text truncate text-xl font-semibold tracking-tight tabular-nums md:text-2xl">
+    <div className="bg-material-medium/40 border-fill-tertiary relative flex min-w-0 flex-col items-start gap-3 rounded-2xl border p-5 sm:flex-row sm:items-center">
+      <div className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
+        <span className="text-text-tertiary text-[11px] font-semibold tracking-[0.14em] break-words uppercase">{label}</span>
+        <span className="text-text text-xl leading-tight font-semibold tracking-tight break-words tabular-nums md:text-2xl">
           {href ? (
             <a href={href} className={clsxm(focusRing, 'hover:text-accent underline-offset-4 hover:underline')}>
               {body}
@@ -239,7 +239,7 @@ export const StatTile = ({
             body
           )}
         </span>
-        {hint && <span className="text-text-secondary truncate text-xs">{hint}</span>}
+        {hint && <span className="text-text-secondary text-xs break-words">{hint}</span>}
       </div>
       {photo && photoId && <PhotoThumb id={photoId} className="size-14 shrink-0" />}
     </div>
