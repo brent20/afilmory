@@ -268,13 +268,12 @@ export interface PhotoRecord {
   orientation: Orientation | null
   /** "3:2", "2:3", "16:9", … */
   aspect: string | null
-  megapixels: number | null
-  bytes: number
   tone: ToneType | null
   /** 0–100 */
   brightness: number | null
   contrast: number | null
   country: string | null
+  state: string | null
   /** Clean city/town name */
   city: string | null
   /** "Omaha, Nebraska" */
@@ -377,11 +376,14 @@ const cameraName = (make?: string, model?: string): string | null => {
 export const dayNumber = (year: number, month: number, day: number): number =>
   Math.floor(Date.UTC(year, month - 1, day) / 86_400_000)
 
+const UNITED_STATES = /^(?:united states(?: of america)?|usa|us|u\.s\.a?\.?)$/i
+
 const placeOf = (city?: string, state?: string, country?: string): string | null => {
   if (!city) {
     return null
   }
-  const region = state && state !== city ? state : country
+  const isUnitedStates = country !== undefined && UNITED_STATES.test(country.trim())
+  const region = state && (isUnitedStates || state !== city) ? state : country
   return region ? `${city}, ${region}` : city
 }
 
@@ -444,12 +446,11 @@ export const toRecords = (photos: PhotoManifestItem[]): PhotoRecord[] =>
       height: photo.height,
       orientation,
       aspect,
-      megapixels: photo.width > 0 && photo.height > 0 ? (photo.width * photo.height) / 1_000_000 : null,
-      bytes: Number.isFinite(photo.size) ? photo.size : 0,
       tone: tone?.toneType ?? null,
       brightness: tone ? tone.brightness : null,
       contrast: tone ? tone.contrast : null,
       country: location?.country ?? null,
+      state: location?.state?.trim() || null,
       city,
       place: placeOf(city ?? undefined, location?.state, location?.country),
       lat: hasFix ? lat : null,
@@ -660,11 +661,12 @@ export interface PhotoMetrics {
   cameras: Count[]
   lenses: Count[]
   countries: Count[]
+  states: Count[]
 
   fun: {
     topCamera: Count | null
     topLens: Count | null
-    topCountry: Count | null
+    topState: Count | null
     peakHour: number | null
     weekendShare: number | null
     nightShare: number | null
@@ -782,6 +784,7 @@ export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
   const cameras = countBy(records, r => r.camera)
   const lenses = countBy(records, r => r.lens)
   const countries = countBy(records, r => r.country)
+  const states = countBy(records, r => r.state)
 
   // fun stats
   const hours = zeros(24)
@@ -888,11 +891,12 @@ export function computeMetrics(photos: PhotoManifestItem[]): PhotoMetrics {
     cameras,
     lenses,
     countries,
+    states,
 
     fun: {
       topCamera: cameras[0] ?? null,
       topLens: lenses[0] ?? null,
-      topCountry: countries[0] ?? null,
+      topState: states[0] ?? null,
       peakHour: peak,
       weekendShare: dowTotal ? (dayOfWeek[0]! + dayOfWeek[6]!) / dowTotal : null,
       nightShare: hourTotal ? night / hourTotal : null,

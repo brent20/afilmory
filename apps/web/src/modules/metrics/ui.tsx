@@ -38,8 +38,8 @@ export const Section = ({
       transition={Spring.presets.smooth}
     >
       <header>
-        <p className="text-accent font-mono text-xs tracking-widest uppercase">{eyebrow}</p>
-        <h2 id={`${id}-title`} className="text-text mt-1 font-serif text-2xl md:text-3xl">
+        <p className="text-text-tertiary text-xs font-medium tracking-wider uppercase">{eyebrow}</p>
+        <h2 id={`${id}-title`} className="text-text mt-1 text-xl font-semibold tracking-tight md:text-2xl">
           {title}
         </h2>
         {intro && <p className="text-text-secondary mt-2 max-w-2xl text-sm leading-relaxed">{intro}</p>}
@@ -67,10 +67,10 @@ export const Card = ({
 }) => {
   const { t } = useTranslation()
   return (
-    <div className={clsxm('bg-material-thin border-border flex flex-col gap-4 rounded-2xl border p-5', className)}>
+    <div className={clsxm('bg-material-medium/40 border-fill-tertiary flex flex-col gap-4 rounded-2xl border p-5', className)}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-text-secondary font-mono text-xs tracking-widest uppercase">{title}</h3>
+          <h3 className="text-text text-sm font-semibold">{title}</h3>
           {note && <p className="text-text-tertiary mt-1 text-xs">{note}</p>}
         </div>
         {action}
@@ -130,7 +130,7 @@ export const EmptyNote = ({ children }: { children?: ReactNode }) => {
 /* -------------------------------------------------------------------------- */
 
 export const ReadoutLine = ({ text, idle }: { text: string, idle?: string }) => (
-  <p aria-live="polite" className="text-text-secondary min-h-5 pt-1 text-center font-mono text-xs">
+  <p aria-live="polite" className="text-text-secondary min-h-5 pt-1 text-center text-xs tabular-nums">
     {text || <span className="text-text-quaternary">{idle}</span>}
   </p>
 )
@@ -227,10 +227,10 @@ export const StatTile = ({
   const photo = findPhoto(photoId)
   const body = count === undefined ? value : <CountUp value={count} />
   return (
-    <div className="bg-material-thin border-border relative flex min-w-0 items-center gap-3 rounded-2xl border p-5">
+    <div className="bg-material-medium/40 border-fill-tertiary relative flex min-w-0 items-center gap-3 rounded-2xl border p-5">
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-text-tertiary font-mono text-[10px] tracking-widest uppercase">{label}</span>
-        <span className="text-text truncate font-serif text-2xl md:text-3xl">
+        <span className="text-text-tertiary text-[11px] font-semibold tracking-[0.2em] uppercase">{label}</span>
+        <span className="text-text truncate text-xl font-semibold tracking-tight tabular-nums md:text-2xl">
           {href ? (
             <a href={href} className={clsxm(focusRing, 'hover:text-accent underline-offset-4 hover:underline')}>
               {body}
@@ -277,8 +277,8 @@ export const FeatureTile = ({
         className="size-full object-cover duration-200 group-hover:opacity-90"
       />
       <span className="bg-linear-to-t absolute inset-x-0 bottom-0 flex flex-col gap-0.5 from-black/80 to-transparent p-3 pt-10 text-white">
-        <span className="font-mono text-[10px] tracking-widest uppercase opacity-80">{label}</span>
-        <span className="font-serif text-xl">{value}</span>
+        <span className="text-[10px] font-semibold tracking-[0.2em] uppercase opacity-80">{label}</span>
+        <span className="text-lg font-semibold tabular-nums">{value}</span>
         {detail && <span className="truncate text-[11px] opacity-80">{detail}</span>}
       </span>
     </Link>
@@ -312,7 +312,7 @@ export const Drawer = ({
   const [open, setOpen] = useState(false)
   const [everOpened, setEverOpened] = useState(false)
   return (
-    <div className="bg-material-thin border-border rounded-2xl border">
+    <div className="bg-material-medium/40 border-fill-tertiary rounded-2xl border">
       <button
         type="button"
         aria-expanded={open}
@@ -323,7 +323,7 @@ export const Drawer = ({
         className={clsxm(focusRing, 'flex w-full items-center justify-between gap-4 rounded-2xl p-5 text-left')}
       >
         <span className="min-w-0">
-          <span className="text-text block font-serif text-lg">{title}</span>
+          <span className="text-text block text-base font-semibold">{title}</span>
           <span className="text-text-secondary mt-0.5 block text-xs">{summary}</span>
         </span>
         <i

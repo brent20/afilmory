@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { ColourMetrics } from '~/lib/metrics'
 import { computeColourMetrics, computeMetrics } from '~/lib/metrics'
 import { computeExtras } from '~/lib/metrics-extras'
+import { isExcludedFromMetrics } from '~/modules/metrics/excluded-gear'
 import { MetricsPage } from '~/modules/metrics/MetricsPage'
 
 export const Component = () => {
@@ -21,7 +22,7 @@ export const Component = () => {
   }, [])
 
   // Always analyze the whole library, not whatever filters are active in the gallery.
-  const photos = useMemo(() => photoLoader.getPhotos(), [])
+  const photos = useMemo(() => photoLoader.getPhotos().filter(photo => !isExcludedFromMetrics(photo)), [])
   const metrics = useMemo(() => computeMetrics(photos), [photos])
   const extras = useMemo(() => computeExtras(metrics), [metrics])
 

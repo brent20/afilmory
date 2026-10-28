@@ -2,18 +2,6 @@ export const formatInt = (value: number): string => Math.round(value).toLocaleSt
 
 export const formatPercent = (value: number | null): string => (value === null ? '—' : `${Math.round(value * 100)}%`)
 
-/** 1.2 GB, 340 MB */
-export const formatBytes = (bytes: number): string => {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let value = bytes
-  let unit = 0
-  while (value >= 1000 && unit < units.length - 1) {
-    value /= 1000
-    unit++
-  }
-  return `${value >= 100 || unit === 0 ? Math.round(value) : Number.parseFloat(value.toFixed(1))} ${units[unit]}`
-}
-
 /** 3 hr 12 min, 45 min, 2 days 4 hr */
 export const formatDuration = (seconds: number): string => {
   const minutes = Math.round(seconds / 60)

@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 
 import { usePhotoViewCounts } from '~/modules/views/photo-views'
 
+import { isExcludedFromMetrics } from '../excluded-gear'
 import { photoHref } from '../format'
 
 const TOP_COUNT = 12
@@ -24,7 +25,7 @@ export const VisitorFavorites = () => {
     return Object.entries(data)
       .flatMap(([id, views]) => {
         const photo = photoLoader.getPhoto(id)
-        return photo && views > 0 ? [{ photo, views }] : []
+        return photo && views > 0 && !isExcludedFromMetrics(photo) ? [{ photo, views }] : []
       })
       .sort((a, b) => b.views - a.views)
       .slice(0, TOP_COUNT)
@@ -37,7 +38,7 @@ export const VisitorFavorites = () => {
   return (
     <div className="space-y-3">
       <div>
-        <h3 className="text-text font-serif text-xl">{t('metrics.favorites.title')}</h3>
+        <h3 className="text-text text-lg font-semibold">{t('metrics.favorites.title')}</h3>
         <p className="text-text-secondary mt-1 text-xs">{t('metrics.favorites.note')}</p>
       </div>
       <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

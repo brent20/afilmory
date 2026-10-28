@@ -115,8 +115,6 @@ export interface ExtraMetrics {
     slideshowSeconds: number
     /** 36-exposure rolls of film */
     rolls: number
-    totalBytes: number
-    avgMegapixels: number | null
     hdrShare: number | null
     videos: number
   }
@@ -432,10 +430,6 @@ export function computeExtras(metrics: PhotoMetrics): ExtraMetrics {
     { order: ['Prime', 'Zoom'] },
   )
 
-  // fun numbers
-  const totalBytes = records.reduce((sum, r) => sum + r.bytes, 0)
-  const megapixels = records.flatMap(r => (r.megapixels === null ? [] : [r.megapixels]))
-
   // tags
   const tagCounts = new Map<string, number>()
   for (const r of records) {
@@ -534,8 +528,6 @@ export function computeExtras(metrics: PhotoMetrics): ExtraMetrics {
     fun: {
       slideshowSeconds: records.length * 3,
       rolls: records.length / 36,
-      totalBytes,
-      avgMegapixels: mean(megapixels),
       hdrShare: share(records.filter(r => r.hdr).length, records.length),
       videos: records.filter(r => r.video).length,
     },

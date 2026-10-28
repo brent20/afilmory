@@ -37,7 +37,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
   const scroller = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState<string>('highlights')
   const owner = siteConfig.author.name
-  const hasPlaces = data.extras.travel.geoTagged > 0 || data.metrics.countries.length > 0
+  const hasPlaces = data.extras.travel.geoTagged > 0 || data.metrics.states.length > 0
   const hasSubjects = data.extras.tags.top.length > 0
   const navItems = NAV.filter(item => (item.id === 'places' ? hasPlaces : item.id === 'subjects' ? hasSubjects : true))
 
@@ -85,16 +85,16 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
 
       <div className="mx-auto max-w-7xl px-4 pt-24 pb-24 md:px-8">
         <header className="mb-10 text-center">
-          <p className="text-accent font-mono text-xs tracking-widest uppercase">{t('metrics.hero.eyebrow')}</p>
-          <h1 className="text-text mt-3 font-serif text-4xl md:text-6xl">{t('metrics.hero.title', { name: owner })}</h1>
-          <p className="text-text-secondary mx-auto mt-4 max-w-2xl text-sm leading-relaxed md:text-base">
+          <p className="text-text-tertiary text-xs font-semibold tracking-[0.3em] uppercase">{t('metrics.hero.eyebrow')}</p>
+          <h1 className="text-text mt-3 text-3xl font-bold tracking-tight sm:text-4xl">{t('metrics.hero.title', { name: owner })}</h1>
+          <p className="text-text-secondary mx-auto mt-4 max-w-2xl text-base leading-relaxed">
             {t('metrics.hero.intro', { name: owner })}
           </p>
         </header>
 
         <nav
           aria-label={t('metrics.nav.label')}
-          className="bg-material-medium sticky top-3 z-30 mx-auto mb-12 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-white/10 p-1 backdrop-blur-2xl"
+          className="bg-material-medium border-accent/20 sticky top-3 z-30 mx-auto mb-12 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border p-1 backdrop-blur-2xl"
         >
           {navItems.map(item => (
             <button

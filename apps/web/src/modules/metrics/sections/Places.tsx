@@ -9,7 +9,7 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
   const { t } = useTranslation()
   const { metrics, extras } = data
   const { travel } = extras
-  if (travel.geoTagged === 0 && metrics.countries.length === 0) {
+  if (travel.geoTagged === 0 && metrics.states.length === 0) {
     return null
   }
   const newPlaces = travel.newPlacesPerYear
@@ -60,7 +60,12 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
             <BarList items={travel.topPlaces} label={t('metrics.places.top')} />
           </Card>
         )}
-        {metrics.countries.length > 0 && (
+        {metrics.states.length > 1 && (
+          <Card title={t('metrics.places.states')}>
+            <BarList items={metrics.states} limit={10} label={t('metrics.places.states')} />
+          </Card>
+        )}
+        {metrics.countries.length > 1 && (
           <Card title={t('metrics.places.countries')}>
             <BarList items={metrics.countries} limit={10} label={t('metrics.places.countries')} />
           </Card>

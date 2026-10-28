@@ -45,7 +45,7 @@ const OnThisDay = ({ records }: { records: PhotoRecord[] }) => {
         </div>
       )}
     >
-      <p className="text-text mb-3 font-serif text-xl">{`${MONTH_NAMES[date.month - 1]} ${date.day}`}</p>
+      <p className="text-text mb-3 text-xl font-semibold tracking-tight">{`${MONTH_NAMES[date.month - 1]} ${date.day}`}</p>
       {found.length === 0 ? (
         <EmptyNote>{t('metrics.play.on_this_day_empty')}</EmptyNote>
       ) : (
@@ -109,7 +109,7 @@ const Roller = ({ records }: { records: PhotoRecord[] }) => {
             <img src={photo.thumbnailUrl} alt={photo.title} className="w-full object-cover" />
           </Link>
           <div className="space-y-1">
-            <p className="text-text font-serif text-lg">{photo.title}</p>
+            <p className="text-text text-base font-semibold">{photo.title}</p>
             <p className="text-text-secondary font-mono text-xs">{settingsLine(picked) || t('metrics.play.no_settings')}</p>
             {picked.camera && <p className="text-text-tertiary text-xs">{picked.camera}</p>}
           </div>

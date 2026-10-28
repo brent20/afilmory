@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { formatDay } from '~/lib/metrics'
 import { formatShutter, settingsLine } from '~/lib/metrics-extras'
 
-import { cameraHref, formatBytes, formatDuration, formatFeet, formatInt, formatMiles, formatPercent, lensHref } from '../format'
+import { cameraHref, formatDuration, formatFeet, formatInt, formatMiles, formatPercent, lensHref } from '../format'
 import type { MetricsData } from '../insights'
 import { buildInsights } from '../insights'
 import { FeatureTile, Section, StatTile } from '../ui'
@@ -33,6 +33,9 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
   const cameraFilter = topCamera ? extras.gear.cameras.find(s => s.name === topCamera.name)?.filter : null
   const lensFilter = topLens ? extras.gear.lenses.find(s => s.name === topLens.name)?.filter : null
   const photoOf = (pick: (r: (typeof metrics.records)[number]) => boolean) => metrics.records.find(pick)?.id ?? null
+  const hasStates = metrics.states.length > 1
+  const hasCountries = metrics.countries.length > 1
+  const usualAperture = metrics.fun.comfort.aperture
 
   const { extremes, mood, travel, habits } = extras
   const superlatives: Superlative[] = []
@@ -78,7 +81,7 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
           {insights.map(text => (
             <li
               key={text}
-              className="bg-material-thin border-border text-text rounded-2xl border p-5 font-serif text-lg leading-snug"
+              className="bg-material-medium/40 border-fill-tertiary text-text rounded-2xl border p-5 text-base leading-snug font-medium"
             >
               {text}
             </li>
@@ -100,7 +103,8 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
           }
         />
         <StatTile label={t('metrics.tile.cameras')} value="" count={metrics.cameras.length} hint={t('metrics.tile.lenses_hint', { count: metrics.lenses.length })} />
-        {metrics.countries.length > 0 && <StatTile label={t('metrics.tile.countries')} value="" count={metrics.countries.length} />}
+        {hasStates && <StatTile label={t('metrics.tile.states')} value="" count={metrics.states.length} />}
+        {hasCountries && <StatTile label={t('metrics.tile.countries')} value="" count={metrics.countries.length} />}
         {topCamera && (
           <StatTile
             label={t('metrics.tile.top_camera')}
@@ -119,8 +123,8 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
             photoId={photoOf(r => r.lens === topLens.name)}
           />
         )}
-        {metrics.fun.topCountry && (
-          <StatTile label={t('metrics.tile.top_country')} value={metrics.fun.topCountry.name} hint={t('metrics.photos', { count: metrics.fun.topCountry.count })} />
+        {hasStates && metrics.fun.topState && (
+          <StatTile label={t('metrics.tile.top_state')} value={metrics.fun.topState.name} hint={t('metrics.photos', { count: metrics.fun.topState.count })} />
         )}
         <StatTile label={t('metrics.tile.weekend')} value={formatPercent(metrics.fun.weekendShare)} hint={t('metrics.tile.weekend_hint')} />
         <StatTile label={t('metrics.tile.night')} value={formatPercent(metrics.fun.nightShare)} hint={t('metrics.tile.night_hint')} />
@@ -136,7 +140,7 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
 
       {superlatives.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-text font-serif text-xl">{t('metrics.super.title')}</h3>
+          <h3 className="text-text text-lg font-semibold">{t('metrics.super.title')}</h3>
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {superlatives.map(s => (
               <li key={s.key}>
@@ -150,13 +154,19 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
       <VisitorFavorites />
 
       <div className="space-y-3">
-        <h3 className="text-text font-serif text-xl">{t('metrics.fun.title')}</h3>
+        <h3 className="text-text text-lg font-semibold">{t('metrics.fun.title')}</h3>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
           <StatTile label={t('metrics.fun.slideshow')} value={formatDuration(fun.slideshowSeconds)} hint={t('metrics.fun.slideshow_hint')} />
           <StatTile label={t('metrics.fun.rolls')} value={formatInt(fun.rolls)} hint={t('metrics.fun.rolls_hint')} />
-          <StatTile label={t('metrics.fun.size')} value={formatBytes(fun.totalBytes)} hint={t('metrics.fun.size_hint')} />
-          {fun.avgMegapixels !== null && (
-            <StatTile label={t('metrics.fun.megapixels')} value={`${Number.parseFloat(fun.avgMegapixels.toFixed(1))} MP`} hint={t('metrics.fun.megapixels_hint')} />
+          {usualAperture !== null && (
+            <StatTile
+              label={t('metrics.fun.aperture')}
+              value={`f/${Number.parseFloat(usualAperture.toFixed(1))}`}
+              hint={t('metrics.fun.aperture_hint')}
+            />
+          )}
+          {metrics.fun.primeShare !== null && (
+            <StatTile label={t('metrics.fun.prime')} value={formatPercent(metrics.fun.primeShare)} hint={t('metrics.fun.prime_hint')} />
           )}
           {fun.hdrShare !== null && fun.hdrShare > 0 && <StatTile label={t('metrics.fun.hdr')} value={formatPercent(fun.hdrShare)} hint={t('metrics.fun.hdr_hint')} />}
           {fun.videos > 0 && <StatTile label={t('metrics.fun.videos')} value={formatInt(fun.videos)} hint={t('metrics.fun.videos_hint')} />}

@@ -654,7 +654,7 @@ export const SilenceList = ({ silences, span }: { silences: Silence[], span: { f
       <ol className="divide-border divide-y">
         {silences.map(silence => (
           <li key={silence.fromDay} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-2.5">
-            <span className="text-text font-serif text-lg">{formatSilenceLength(silence.days)}</span>
+            <span className="text-text text-base font-semibold tabular-nums">{formatSilenceLength(silence.days)}</span>
             <span className="text-text-secondary text-xs">
               {formatDay(silence.fromDay)}
               {' '}
