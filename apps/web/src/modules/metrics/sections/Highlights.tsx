@@ -5,6 +5,7 @@ import { formatDay } from '~/lib/metrics'
 import { formatShutter, settingsLine } from '~/lib/metrics-extras'
 
 import { cameraHref, formatDuration, formatFeet, formatInt, formatMiles, formatPercent, lensHref } from '../format'
+import type { MetricIconName } from '../icons'
 import type { MetricsData } from '../insights'
 import { buildInsights } from '../insights'
 import { FeatureTile, Section, StatTile } from '../ui'
@@ -16,6 +17,21 @@ interface Superlative {
   label: string
   value: string
   detail?: string
+}
+
+/** Each personal best wears the glyph the photo inspector uses for that setting */
+const SUPERLATIVE_ICONS: Record<string, MetricIconName> = {
+  widest: 'focal',
+  longest: 'focal',
+  aperture: 'aperture',
+  iso: 'iso',
+  exposure: 'shutter',
+  shutter: 'shutter',
+  brightest: 'exposure',
+  darkest: 'exposure',
+  farthest: 'place',
+  highest: 'altitude',
+  busiest: 'time',
 }
 
 export const HighlightsSection = ({ data }: { data: MetricsData }) => {
@@ -144,7 +160,7 @@ export const HighlightsSection = ({ data }: { data: MetricsData }) => {
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {superlatives.map(s => (
               <li key={s.key}>
-                <FeatureTile photoId={s.photoId} label={s.label} value={s.value} detail={s.detail} />
+                <FeatureTile photoId={s.photoId} label={s.label} value={s.value} detail={s.detail} icon={SUPERLATIVE_ICONS[s.key]} />
               </li>
             ))}
           </ul>

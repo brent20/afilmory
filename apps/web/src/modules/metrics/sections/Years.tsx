@@ -17,7 +17,7 @@ export const YearsSection = ({ data }: { data: MetricsData }) => {
 
   return (
     <Section id="years" eyebrow={t('metrics.nav.years')} title={t('metrics.years.title')} intro={t('metrics.years.intro')}>
-      <Card title={t('metrics.years.per_year')} howTo={t('metrics.years.per_year_how')}>
+      <Card title={t('metrics.years.per_year')}>
         <ColumnChart
           values={perYear.counts}
           labels={yearLabels}

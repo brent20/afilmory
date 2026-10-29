@@ -13,11 +13,11 @@ export const SubjectsSection = ({ data }: { data: MetricsData }) => {
   return (
     <Section id="subjects" eyebrow={t('metrics.nav.subjects')} title={t('metrics.subjects.title')} intro={t('metrics.subjects.intro')}>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card title={t('metrics.subjects.top')} howTo={t('metrics.subjects.top_how')}>
+        <Card title={t('metrics.subjects.top')}>
           <BarList items={tags.top} label={t('metrics.subjects.top')} />
         </Card>
         {tags.byYear.series.length > 0 && (
-          <Card title={t('metrics.subjects.over_time')} howTo={t('metrics.subjects.over_time_how')}>
+          <Card title={t('metrics.subjects.over_time')} note={t('metrics.subjects.over_time_note')}>
             <StackedColumns data={tags.byYear} label={t('metrics.subjects.over_time')} />
           </Card>
         )}

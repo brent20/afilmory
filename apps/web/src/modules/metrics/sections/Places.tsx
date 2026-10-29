@@ -18,9 +18,10 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
   return (
     <Section id="places" eyebrow={t('metrics.nav.places')} title={t('metrics.places.title')} intro={t('metrics.places.intro')}>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {travel.home && <StatTile label={t('metrics.places.home')} value={travel.home.place} hint={t('metrics.places.home_hint')} />}
+        {travel.home && <StatTile icon="place" label={t('metrics.places.home')} value={travel.home.place} hint={t('metrics.places.home_hint')} />}
         {travel.farthest && (
           <StatTile
+            icon="place"
             label={t('metrics.places.farthest')}
             value={formatMiles(travel.farthest.miles)}
             hint={travel.farthest.place ?? undefined}
@@ -29,6 +30,7 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
         )}
         {travel.highest && (
           <StatTile
+            icon="altitude"
             label={t('metrics.places.highest')}
             value={formatFeet(travel.highest.feet)}
             hint={travel.highest.place ?? undefined}
@@ -37,6 +39,7 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
         )}
         {travel.northernmost && (
           <StatTile
+            icon="latitude"
             label={t('metrics.places.north')}
             value={latitudeLabel(travel.northernmost.lat)}
             hint={travel.northernmost.place ?? undefined}
@@ -45,18 +48,19 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
         )}
         {travel.southernmost && (
           <StatTile
+            icon="latitude"
             label={t('metrics.places.south')}
             value={latitudeLabel(travel.southernmost.lat)}
             hint={travel.southernmost.place ?? undefined}
             photoId={travel.southernmost.photoId}
           />
         )}
-        {travel.placeCount > 0 && <StatTile label={t('metrics.places.count')} value="" count={travel.placeCount} />}
+        {travel.placeCount > 0 && <StatTile icon="place" label={t('metrics.places.count')} value="" count={travel.placeCount} />}
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {travel.topPlaces.length > 0 && (
-          <Card title={t('metrics.places.top')} howTo={t('metrics.places.top_how')}>
+          <Card title={t('metrics.places.top')}>
             <BarList items={travel.topPlaces} label={t('metrics.places.top')} />
           </Card>
         )}
@@ -73,7 +77,7 @@ export const PlacesSection = ({ data }: { data: MetricsData }) => {
       </div>
 
       {newPlaces.years.length > 1 && (
-        <Card title={t('metrics.places.new_per_year')} howTo={t('metrics.places.new_per_year_how')}>
+        <Card title={t('metrics.places.new_per_year')}>
           <ColumnChart
             values={newPlaces.counts}
             labels={newPlaces.years.map(y => (newPlaces.years.length > 12 ? String(y).slice(-2) : String(y)))}

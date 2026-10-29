@@ -30,7 +30,6 @@ export const ColorSection = ({ data }: { data: MetricsData }) => {
               <Card
                 title={t('metrics.color.over_time')}
                 note={active ? t('metrics.color.showing', { family: active }) : t('metrics.color.over_time_note')}
-                howTo={t('metrics.color.over_time_how')}
               >
                 <ColourTimeline
                   years={colour.timeline.years}

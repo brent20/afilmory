@@ -33,7 +33,7 @@ const OnThisDay = ({ records }: { records: PhotoRecord[] }) => {
   return (
     <Card
       title={t('metrics.play.on_this_day')}
-      howTo={t('metrics.play.on_this_day_how')}
+      note={t('metrics.play.on_this_day_note')}
       action={(
         <div className="flex gap-2">
           <button type="button" className={buttonClass} onClick={() => setDate(d => shiftDay(d.month, d.day, -1))}>
@@ -73,7 +73,7 @@ const Roller = ({ records }: { records: PhotoRecord[] }) => {
   const presetLabel = (p: RollPreset) => t(PRESET_KEYS[p])
 
   return (
-    <Card title={t('metrics.play.roll')} howTo={t('metrics.play.roll_how')}>
+    <Card title={t('metrics.play.roll')} note={t('metrics.play.roll_note')}>
       <div className="flex flex-wrap gap-2" role="group" aria-label={t('metrics.play.roll')}>
         {ROLL_PRESETS.map(p => (
           <button

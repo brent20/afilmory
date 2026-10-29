@@ -19,38 +19,39 @@ export const HowSection = ({ data }: { data: MetricsData }) => {
   return (
     <Section id="how" eyebrow={t('metrics.nav.how')} title={t('metrics.how.title')} intro={t('metrics.how.intro')}>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-        <Card title={t('metrics.how.focal_equiv')} note={coverage(metrics.coverage.focal)} howTo={t('metrics.how.focal_how')}>
+        <Card icon="focalEquiv" title={t('metrics.how.focal_equiv')} note={coverage(metrics.coverage.focal)} howTo={t('metrics.how.focal_how')}>
           <BarList items={metrics.focalBars} label={t('metrics.how.focal_equiv')} />
         </Card>
-        <Card title={t('metrics.how.focal_actual')} note={coverage(metrics.coverage.focalActual)}>
+        <Card icon="focal" title={t('metrics.how.focal_actual')} note={coverage(metrics.coverage.focalActual)} howTo={t('metrics.how.focal_actual_how')}>
           <BarList items={metrics.focalActualBars} label={t('metrics.how.focal_actual')} />
         </Card>
-        <Card title={t('metrics.how.aperture')} note={coverage(metrics.coverage.aperture)} howTo={t('metrics.how.aperture_how')}>
+        <Card icon="aperture" title={t('metrics.how.aperture')} note={coverage(metrics.coverage.aperture)} howTo={t('metrics.how.aperture_how')}>
           <BarList items={metrics.apertureBars} label={t('metrics.how.aperture')} />
         </Card>
-        <Card title={t('metrics.how.iso')} note={coverage(metrics.coverage.iso)} howTo={t('metrics.how.iso_how')}>
+        <Card icon="iso" title={t('metrics.how.iso')} note={coverage(metrics.coverage.iso)} howTo={t('metrics.how.iso_how')}>
           <BarList items={metrics.isoBars} label={t('metrics.how.iso')} />
         </Card>
       </div>
 
       {shutter.coverage > 0 && (
-        <Card title={t('metrics.how.shutter')} note={coverage(shutter.coverage)} howTo={t('metrics.how.shutter_how')}>
+        <Card icon="shutter" title={t('metrics.how.shutter')} note={coverage(shutter.coverage)} howTo={t('metrics.how.shutter_how')}>
           <BarList items={shutter.bands} label={t('metrics.how.shutter')} />
         </Card>
       )}
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {exposure.wideOpenShare !== null && (
-          <StatTile label={t('metrics.how.wide_open')} value={formatPercent(exposure.wideOpenShare)} hint={t('metrics.how.wide_open_hint')} />
+          <StatTile icon="aperture" label={t('metrics.how.wide_open')} value={formatPercent(exposure.wideOpenShare)} hint={t('metrics.how.wide_open_hint')} />
         )}
         {exposure.lowLightShare !== null && (
-          <StatTile label={t('metrics.how.low_light')} value={formatPercent(exposure.lowLightShare)} hint={t('metrics.how.low_light_hint')} />
+          <StatTile icon="iso" label={t('metrics.how.low_light')} value={formatPercent(exposure.lowLightShare)} hint={t('metrics.how.low_light_hint')} />
         )}
         {exposure.flashShare !== null && (
-          <StatTile label={t('metrics.how.flash')} value={formatPercent(exposure.flashShare)} hint={t('metrics.how.flash_hint')} />
+          <StatTile icon="flash" label={t('metrics.how.flash')} value={formatPercent(exposure.flashShare)} hint={t('metrics.how.flash_hint')} />
         )}
         {exposure.avgComp !== null && (
           <StatTile
+            icon="exposure"
             label={t('metrics.how.comp')}
             value={`${exposure.avgComp >= 0 ? '+' : '−'}${Math.abs(exposure.avgComp).toFixed(1)} EV`}
             hint={t('metrics.how.comp_hint')}
@@ -60,17 +61,17 @@ export const HowSection = ({ data }: { data: MetricsData }) => {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {exposure.programs.length > 0 && (
-          <Card title={t('metrics.how.modes')} howTo={t('metrics.how.modes_how')}>
+          <Card icon="program" title={t('metrics.how.modes')} howTo={t('metrics.how.modes_how')}>
             <BarList items={exposure.programs} label={t('metrics.how.modes')} />
           </Card>
         )}
         {framing.orientation.length > 0 && (
-          <Card title={t('metrics.how.orientation')} howTo={t('metrics.how.orientation_how')}>
+          <Card icon="frame" title={t('metrics.how.orientation')}>
             <BarList items={framing.orientation} label={t('metrics.how.orientation')} />
           </Card>
         )}
         {framing.aspects.length > 0 && (
-          <Card title={t('metrics.how.aspects')}>
+          <Card icon="frame" title={t('metrics.how.aspects')}>
             <BarList items={framing.aspects} limit={6} label={t('metrics.how.aspects')} />
           </Card>
         )}
@@ -80,7 +81,6 @@ export const HowSection = ({ data }: { data: MetricsData }) => {
         <Card
           title={t('metrics.how.mood')}
           note={mood.avgBrightness === null ? undefined : t('metrics.how.mood_note', { value: Math.round(mood.avgBrightness) })}
-          howTo={t('metrics.how.mood_how')}
         >
           <BarList items={mood.tones} label={t('metrics.how.mood')} />
         </Card>
@@ -89,10 +89,11 @@ export const HowSection = ({ data }: { data: MetricsData }) => {
       <Drawer
         title={t('metrics.nerd.title')}
         summary={t('metrics.how.nerd_summary', { count: metrics.relationships.total })}
+        howTo={t('metrics.nerd.heatmap_how')}
       >
         <LazyBlock>
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-            <Card title={t('metrics.how.rel_focal_aperture')} howTo={t('metrics.nerd.heatmap_how')}>
+            <Card title={t('metrics.how.rel_focal_aperture')}>
               <Heatmap
                 rowLabels={APERTURE_BANDS.map(b => b.label)}
                 colLabels={FOCAL_EQUIV_BANDS.map(b => b.short)}

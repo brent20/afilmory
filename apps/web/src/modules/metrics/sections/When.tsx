@@ -26,9 +26,9 @@ export const WhenSection = ({ data }: { data: MetricsData }) => {
   return (
     <Section id="when" eyebrow={t('metrics.nav.when')} title={t('metrics.when.title')} intro={t('metrics.when.intro')}>
       <Card
+        icon="time"
         title={t('metrics.when.hours')}
         note={metrics.fun.peakHour === null ? undefined : t('metrics.when.hours_note', { hour: formatHour(metrics.fun.peakHour) })}
-        howTo={t('metrics.when.hours_how')}
       >
         <ColumnChart
           values={metrics.hours}
@@ -40,16 +40,17 @@ export const WhenSection = ({ data }: { data: MetricsData }) => {
       </Card>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card title={t('metrics.when.weekday')} howTo={t('metrics.when.weekday_how')}>
+        <Card icon="time" title={t('metrics.when.weekday')}>
           <ColumnChart values={metrics.dayOfWeek} labels={DAY_LABELS} showValues label={t('metrics.when.weekday_label')} />
         </Card>
-        <Card title={t('metrics.when.month')} howTo={t('metrics.when.month_how')}>
+        <Card icon="time" title={t('metrics.when.month')} note={t('metrics.when.month_note')}>
           <ColumnChart values={metrics.monthOfYear} labels={MONTH_LABELS} showValues label={t('metrics.when.month_label')} />
         </Card>
       </div>
 
       {light.total >= 20 && (
         <Card
+          icon="sun"
           title={t('metrics.when.light')}
           note={t('metrics.when.light_note', { count: light.total })}
           howTo={t('metrics.when.light_how')}
@@ -66,10 +67,10 @@ export const WhenSection = ({ data }: { data: MetricsData }) => {
         </Card>
       )}
 
-      <Drawer title={t('metrics.nerd.title')} summary={t('metrics.when.nerd_summary')}>
+      <Drawer title={t('metrics.nerd.title')} summary={t('metrics.when.nerd_summary')} howTo={t('metrics.nerd.heatmap_how')}>
         <LazyBlock>
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <Card title={t('metrics.when.hour_aperture')} howTo={t('metrics.nerd.heatmap_how')}>
+            <Card icon="aperture" title={t('metrics.when.hour_aperture')}>
               <Heatmap
                 rowLabels={APERTURE_BANDS.map(b => b.label)}
                 colLabels={HOUR_LABELS}
@@ -87,7 +88,7 @@ export const WhenSection = ({ data }: { data: MetricsData }) => {
                 onHover={setHover}
               />
             </Card>
-            <Card title={t('metrics.when.hour_iso')} howTo={t('metrics.nerd.heatmap_how')}>
+            <Card icon="iso" title={t('metrics.when.hour_iso')}>
               <Heatmap
                 rowLabels={ISO_BANDS.map(b => b.label)}
                 colLabels={HOUR_LABELS}

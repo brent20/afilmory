@@ -21,14 +21,14 @@ export const GearSection = ({ data }: { data: MetricsData }) => {
   return (
     <Section id="gear" eyebrow={t('metrics.nav.gear')} title={t('metrics.gear.title')} intro={t('metrics.gear.intro')}>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        <Card title={t('metrics.gear.cameras')} howTo={t('metrics.gear.list_how')}>
+        <Card icon="camera" title={t('metrics.gear.cameras')}>
           <GearList
             spans={extras.gear.cameras}
             hrefOf={s => (s.filter ? cameraHref(s.filter) : null)}
             label={t('metrics.gear.cameras')}
           />
         </Card>
-        <Card title={t('metrics.gear.lenses')}>
+        <Card icon="lens" title={t('metrics.gear.lenses')}>
           <GearList
             spans={extras.gear.lenses}
             hrefOf={s => (s.filter ? lensHref(s.filter) : null)}
@@ -70,9 +70,9 @@ export const GearSection = ({ data }: { data: MetricsData }) => {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card
+          icon="focal"
           title={t('metrics.gear.focal_over_time')}
           note={t('metrics.gear.focal_over_time_note')}
-          howTo={t('metrics.gear.focal_over_time_how')}
           action={(
             <Segmented
               label={t('metrics.gear.mode')}
@@ -85,7 +85,7 @@ export const GearSection = ({ data }: { data: MetricsData }) => {
           <StackedColumns data={metrics.focalOverTime} share={focalShare} label={t('metrics.gear.focal_over_time')} />
         </Card>
         {extras.gear.primeZoomByYear.series.length > 0 && (
-          <Card title={t('metrics.gear.prime_zoom')} howTo={t('metrics.gear.prime_zoom_how')}>
+          <Card icon="lens" title={t('metrics.gear.prime_zoom')} howTo={t('metrics.gear.prime_zoom_how')}>
             <StackedColumns data={extras.gear.primeZoomByYear} share label={t('metrics.gear.prime_zoom')} />
           </Card>
         )}
@@ -100,6 +100,7 @@ export const GearSection = ({ data }: { data: MetricsData }) => {
           {metrics.zoomUsage.map(usage => (
             <Card
               key={usage.lens}
+              icon="focal"
               title={t('metrics.gear.zoom_for', { lens: usage.lens })}
               note={t('metrics.gear.zoom_note', { count: usage.total })}
               howTo={t('metrics.gear.zoom_how')}

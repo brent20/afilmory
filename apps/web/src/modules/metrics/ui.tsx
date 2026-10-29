@@ -7,6 +7,8 @@ import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router'
 
 import { formatInt, photoHref } from './format'
+import type { MetricIconName } from './icons'
+import { MetricIcon } from './icons'
 import { findPhoto } from './photos'
 
 /* -------------------------------------------------------------------------- */
@@ -54,46 +56,60 @@ export const Section = ({
   )
 }
 
+/**
+ * A one-line explanation under a title. The info icon says what it is, so there is no
+ * visible label; screen readers still get "How to read this:" first.
+ */
+export const HowTo = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation()
+  return (
+    <p className="text-text-secondary flex items-start gap-1.5 text-xs leading-relaxed">
+      <i className="i-mingcute-information-line text-text-tertiary mt-0.5 shrink-0 text-sm" aria-hidden="true" />
+      <span>
+        <span className="sr-only">
+          {t('metrics.howto.label')}
+          {' '}
+        </span>
+        {children}
+      </span>
+    </p>
+  )
+}
+
 export const Card = ({
   title,
   note,
   howTo,
+  icon,
   action,
   children,
   className,
 }: {
   title: string
   note?: string
-  /** Plain-language explanation of how to read the chart */
+  /** Short explanation for jargon or an unusual chart. Skip it when the chart explains itself. */
   howTo?: string
+  /** The same glyph the photo inspector uses for this setting */
+  icon?: MetricIconName
   action?: ReactNode
   children: ReactNode
   className?: string
-}) => {
-  const { t } = useTranslation()
-  return (
-    <div className={clsxm('bg-material-medium/40 border-fill-tertiary flex flex-col gap-4 rounded-2xl border p-5', className)}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-text text-sm font-semibold">{title}</h3>
-          {note && <p className="text-text-tertiary mt-1 text-xs">{note}</p>}
-        </div>
-        {action}
+}) => (
+  <div className={clsxm('bg-material-medium/40 border-fill-tertiary flex flex-col gap-4 rounded-2xl border p-5', className)}>
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h3 className="text-text flex items-start gap-2 text-sm font-semibold">
+          {icon && <MetricIcon name={icon} className="text-text-tertiary mt-0.5 text-base" />}
+          <span className="min-w-0">{title}</span>
+        </h3>
+        {note && <p className="text-text-tertiary mt-1 text-xs">{note}</p>}
       </div>
-      {howTo && (
-        <p className="text-text-secondary text-xs leading-relaxed">
-          <i className="i-mingcute-information-line mr-1 align-[-2px]" aria-hidden="true" />
-          <span className="text-text font-medium">
-            {t('metrics.howto.label')}
-            {' '}
-          </span>
-          {howTo}
-        </p>
-      )}
-      <div className="min-w-0 flex-1">{children}</div>
+      {action}
     </div>
-  )
-}
+    {howTo && <HowTo>{howTo}</HowTo>}
+    <div className="min-w-0 flex-1">{children}</div>
+  </div>
+)
 
 export const Segmented = <T extends string>({
   options,
@@ -220,6 +236,7 @@ export const StatTile = ({
   photoId,
   href,
   count,
+  icon,
 }: {
   label: string
   value: ReactNode
@@ -228,13 +245,17 @@ export const StatTile = ({
   href?: string | null
   /** When set, `value` is animated as a number */
   count?: number
+  icon?: MetricIconName
 }) => {
   const photo = findPhoto(photoId)
   const body = count === undefined ? value : <CountUp value={count} />
   return (
     <div className="bg-material-medium/40 border-fill-tertiary relative flex min-w-0 flex-col items-start gap-3 rounded-2xl border p-5 sm:flex-row sm:items-center">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-1.5">
-        <span className="text-text-tertiary text-[11px] font-semibold tracking-[0.14em] break-words uppercase">{label}</span>
+        <span className="text-text-tertiary flex items-center gap-1.5 text-[11px] font-semibold tracking-[0.14em] uppercase">
+          {icon && <MetricIcon name={icon} className="text-sm" />}
+          <span className="min-w-0 break-words">{label}</span>
+        </span>
         <span className="text-text text-xl leading-tight font-semibold tracking-tight break-words tabular-nums md:text-2xl">
           {href ? (
             <a href={href} className={clsxm(focusRing, 'hover:text-accent underline-offset-4 hover:underline')}>
@@ -257,11 +278,13 @@ export const FeatureTile = ({
   label,
   value,
   detail,
+  icon,
 }: {
   photoId: string
   label: string
   value: string
   detail?: string
+  icon?: MetricIconName
 }) => {
   const photo = findPhoto(photoId)
   if (!photo) {
@@ -282,7 +305,10 @@ export const FeatureTile = ({
         className="size-full object-cover duration-200 group-hover:opacity-90"
       />
       <span className="bg-linear-to-t absolute inset-x-0 bottom-0 flex flex-col gap-0.5 from-black/80 to-transparent p-3 pt-10 text-white">
-        <span className="text-[10px] font-semibold tracking-[0.2em] uppercase opacity-80">{label}</span>
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase opacity-80">
+          {icon && <MetricIcon name={icon} className="text-xs" />}
+          {label}
+        </span>
         <span className="text-lg font-semibold tabular-nums">{value}</span>
         {detail && <span className="truncate text-[11px] opacity-80">{detail}</span>}
       </span>
@@ -308,10 +334,13 @@ export const LazyBlock = ({ children, minHeight = 240 }: { children: ReactNode, 
 export const Drawer = ({
   title,
   summary,
+  howTo,
   children,
 }: {
   title: string
   summary: string
+  /** Shown once at the top, so the grids inside do not each repeat it */
+  howTo?: string
   children: ReactNode
 }) => {
   const [open, setOpen] = useState(false)
@@ -340,7 +369,12 @@ export const Drawer = ({
         />
       </button>
       <div hidden={!open} className="space-y-5 px-5 pb-5">
-        {everOpened && children}
+        {everOpened && (
+          <>
+            {howTo && <HowTo>{howTo}</HowTo>}
+            {children}
+          </>
+        )}
       </div>
     </div>
   )
