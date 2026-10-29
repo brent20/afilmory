@@ -520,7 +520,7 @@
   "metrics.tile.night_hint": "Photos made between 9 PM and 5 AM",
   "metrics.tile.favorite_focal": "Favorite focal length",
   "metrics.tile.favorite_focal_hint": "{{share}} of photos",
-  "metrics.super.title": "Personal bests",
+  "metrics.super.title": "Extremes",
   "metrics.super.widest": "Widest",
   "metrics.super.longest": "Longest reach",
   "metrics.super.aperture": "Widest aperture",

@@ -302,15 +302,15 @@ export const FeatureTile = ({
         src={photo.thumbnailUrl}
         alt={photo.title}
         loading="lazy"
-        className="size-full object-cover duration-200 group-hover:opacity-90"
+        className="size-full object-cover brightness-[0.65] duration-200 group-hover:brightness-[0.8]"
       />
-      <span className="bg-linear-to-t absolute inset-x-0 bottom-0 flex flex-col gap-0.5 from-black/80 to-transparent p-3 pt-10 text-white">
-        <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase opacity-80">
+      <span className="bg-linear-to-t absolute inset-x-0 bottom-0 flex flex-col gap-0.5 from-black/90 via-black/60 to-transparent p-3 pt-20 text-white">
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold tracking-[0.2em] uppercase opacity-90">
           {icon && <MetricIcon name={icon} className="text-xs" />}
           {label}
         </span>
         <span className="text-lg font-semibold tabular-nums">{value}</span>
-        {detail && <span className="truncate text-[11px] opacity-80">{detail}</span>}
+        {detail && <span className="truncate text-[11px] opacity-90">{detail}</span>}
       </span>
     </Link>
   )

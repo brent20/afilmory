@@ -41,29 +41,43 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
   const hasSubjects = data.extras.tags.top.length > 0
   const navItems = NAV.filter(item => (item.id === 'places' ? hasPlaces : item.id === 'subjects' ? hasSubjects : true))
 
-  // Scroll-spy: the section nearest the top of the scroller is the current one.
+  // Scroll-spy: the current section is the last one whose top has passed a line a quarter of the way
+  // down the screen. It is based on position rather than on sections crossing a thin band, so it is
+  // right at the very top (Highlights), at the very bottom (the last section) and after fast flicks.
   useEffect(() => {
-    const root = scroller.current
-    if (!root || typeof IntersectionObserver === 'undefined') {
-      return
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id)
-          }
+    let frame = 0
+    const update = () => {
+      frame = 0
+      // Sections stop 96px from the top after a nav tap (scroll-mt-24), so the line must sit below that
+      const probe = Math.max(window.innerHeight * 0.25, 120)
+      let current = navItems[0]?.id ?? 'highlights'
+      for (const item of navItems) {
+        const el = document.getElementById(item.id)
+        if (el && el.getBoundingClientRect().top <= probe) {
+          current = item.id
         }
-      },
-      { root, rootMargin: '-20% 0px -70% 0px' },
-    )
-    for (const item of navItems) {
-      const el = document.getElementById(item.id)
-      if (el) {
-        observer.observe(el)
+      }
+      const root = scroller.current
+      const scrolling = root && root.scrollHeight > root.clientHeight ? root : document.scrollingElement
+      if (scrolling && scrolling.scrollTop > 0 && scrolling.scrollHeight - scrolling.scrollTop - scrolling.clientHeight < 8) {
+        current = navItems.at(-1)?.id ?? current
+      }
+      setActive(current)
+    }
+    const onScroll = () => {
+      if (!frame) {
+        frame = requestAnimationFrame(update)
       }
     }
-    return () => observer.disconnect()
+    update()
+    // Scroll events do not bubble, so listen in the capture phase to hear whichever element scrolls
+    document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      document.removeEventListener('scroll', onScroll, { capture: true })
+      window.removeEventListener('resize', onScroll)
+      cancelAnimationFrame(frame)
+    }
   }, [navItems.length])
 
   const goTo = (id: string) => {
