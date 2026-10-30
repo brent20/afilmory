@@ -1,6 +1,6 @@
 import { photoLoader } from '@afilmory/data'
 import { useAtomValue } from 'jotai'
-import { use, useCallback, useMemo } from 'react'
+import { use, useCallback, useEffect, useMemo } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router'
 
 import type { DateRangeFilter } from '~/atoms/app'
@@ -12,6 +12,22 @@ import { getPhotoDateMs, getRangeEndMs, getRangeStartMs } from '~/modules/galler
 import { PhotosContext } from '~/providers/photos-provider'
 
 const data = photoLoader.getPhotos()
+
+// The last page the visitor was on that was not a photo ("/", "/work", "/metrics", ...).
+// The photo viewer is its own route, so this is how closing it knows where to go back to
+// when the photo link did not carry a `returnTo` state of its own.
+let lastPagePath = '/'
+
+/** Call once near the root of the app (App.tsx). */
+export const useTrackLastPage = () => {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (!pathname.startsWith('/photos/')) {
+      lastPagePath = pathname
+    }
+  }, [pathname])
+}
 
 // 抽取照片筛选和排序逻辑为独立函数
 // Note: filter uses parsed-instant comparison via getPhotoDateMs, while sort
@@ -219,9 +235,12 @@ export const usePhotoViewer = () => {
       triggerElement: null,
     }))
 
-    // If the photo was opened from another page (e.g. the /work page), go back there.
-    // That page passes `state={{ returnTo: '/work' }}` on its photo links.
-    const returnTo = (location.state as { returnTo?: string } | null)?.returnTo
+    // If the photo was opened from another page (e.g. the /work or /metrics page), go back there.
+    // A page can say so itself with `state={{ returnTo: '/work' }}` on its photo links; otherwise
+    // fall back to the last page the visitor was on. The gallery and map are handled below.
+    const stateReturnTo = (location.state as { returnTo?: string } | null)?.returnTo
+    const lastPageReturnTo = lastPagePath !== '/' && lastPagePath !== '/map' ? lastPagePath : undefined
+    const returnTo = typeof stateReturnTo === 'string' ? stateReturnTo : lastPageReturnTo
     if (typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
       navigate(returnTo, { state: { restore: true } })
     }
