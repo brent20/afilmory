@@ -1,9 +1,10 @@
 import { GlassButton, LinearBlur } from '@afilmory/ui'
 import { clsxm, focusRing } from '@afilmory/utils'
 import { useReducedMotion } from 'motion/react'
-import { startTransition, useCallback, useEffect, useRef, useState } from 'react'
+import type { MouseEvent } from 'react'
+import { startTransition, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate, useNavigationType } from 'react-router'
 
 import { siteConfig } from '~/config'
 
@@ -37,6 +38,22 @@ const SECTION_GAP = 16
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
+const PHOTO_LINK = 'a[href^="/photos/"]'
+
+// Where the visitor was when they last opened a photo from this page. The page is unmounted while the photo
+// viewer is open, so this lives outside the component. Closing the viewer (or pressing Back) brings them
+// back here and the page is put back where they were.
+interface SavedPosition {
+  scrollTop: number
+  // The photo link that was clicked and where it sat on screen. Lining the page up on it is more exact than
+  // a pixel offset, because the charts above it load in at their own pace and change the page height.
+  anchor: { href: string, index: number, offset: number } | null
+}
+let savedPosition: SavedPosition | null = null
+
+const findPhotoLinks = (root: HTMLElement, href: string) =>
+  Array.from(root.querySelectorAll<HTMLAnchorElement>(PHOTO_LINK)).filter(link => link.getAttribute('href') === href)
+
 export const MetricsPage = ({ data }: { data: MetricsData }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -53,6 +70,96 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
   const hasPlaces = data.extras.travel.geoTagged > 0 || data.metrics.states.length > 0
   const hasSubjects = data.extras.tags.top.length > 0
   const navItems = NAV.filter(item => (item.id === 'places' ? hasPlaces : item.id === 'subjects' ? hasSubjects : true))
+
+  const location = useLocation()
+  const navigationType = useNavigationType()
+  // Decided once when the page opens: true when coming back from the photo viewer or with the Back button.
+  const [cameBack] = useState(
+    () => navigationType === 'POP' || (location.state as { restore?: boolean } | null)?.restore === true,
+  )
+
+  // Note the scroll position and the exact photo link whenever a photo is opened from this page.
+  const rememberPosition = (event: MouseEvent<HTMLDivElement>) => {
+    const root = scroller.current
+    const link = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>(PHOTO_LINK) : null
+    if (!root || !link) {
+      return
+    }
+    const href = link.getAttribute('href') ?? ''
+    savedPosition = {
+      scrollTop: root.scrollTop,
+      anchor: {
+        href,
+        index: findPhotoLinks(root, href).indexOf(link),
+        offset: link.getBoundingClientRect().top,
+      },
+    }
+  }
+
+  // Coming back from a photo: scroll to where the visitor was. Some sections only render once they are near
+  // the screen, so the page is shorter than it was. Go to the saved pixel position first (which brings the
+  // section into view), then line the clicked photo up exactly where it was, until it stays put.
+  useLayoutEffect(() => {
+    const root = scroller.current
+    const saved = savedPosition
+    if (!cameBack || !saved || !root) {
+      savedPosition = null
+      return
+    }
+
+    // Near the very top the header is still collapsing, which moves everything under it, so the link
+    // position is only trusted once the header has finished collapsing.
+    const anchor = saved.scrollTop > COLLAPSE_DISTANCE ? saved.anchor : null
+    let frame = 0
+    let frames = 0
+    let steady = 0
+    let stopped = false
+
+    const step = () => {
+      if (stopped) {
+        return
+      }
+      frames += 1
+      const link = anchor ? findPhotoLinks(root, anchor.href)[anchor.index] : undefined
+      if (anchor && link) {
+        const delta = link.getBoundingClientRect().top - anchor.offset
+        if (Math.abs(delta) > 1) {
+          root.scrollTop += delta
+          steady = 0
+        }
+        else {
+          steady += 1
+        }
+      }
+      else {
+        root.scrollTop = saved.scrollTop
+        steady = !anchor && Math.abs(root.scrollTop - saved.scrollTop) <= 1 ? steady + 1 : 0
+      }
+      // Stop once it has held still for a few frames, or after about three seconds.
+      if (steady < 8 && frames < 180) {
+        frame = requestAnimationFrame(step)
+      }
+    }
+
+    // Never fight the visitor: as soon as they scroll, tap or press a key, leave the page alone.
+    const stop = () => {
+      stopped = true
+      cancelAnimationFrame(frame)
+    }
+    const interruptions = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const
+    for (const name of interruptions) {
+      window.addEventListener(name, stop, { passive: true, once: true, capture: true })
+    }
+
+    step()
+
+    return () => {
+      stop()
+      for (const name of interruptions) {
+        window.removeEventListener(name, stop, { capture: true })
+      }
+    }
+  }, [cameBack])
 
   // Writes the collapse progress (0 = open, 1 = collapsed) straight to the DOM. The title size and the
   // spacing are driven by the --p custom property in CSS; the intro paragraph is clipped and faded here.
@@ -172,7 +279,11 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     // header from ever sticking; a fixed scroller works at every width.
     // overflow-anchor is off because the header changes height while scrolling; scroll anchoring would
     // fight that and make the collapse jitter.
-    <div ref={scroller} className="bg-background text-text fixed inset-0 z-10 overflow-y-auto [overflow-anchor:none]">
+    <div
+      ref={scroller}
+      onClickCapture={rememberPosition}
+      className="bg-background text-text fixed inset-0 z-10 overflow-y-auto [overflow-anchor:none]"
+    >
       <div
         ref={header}
         className="sticky top-0 z-30 [--title-from:1.875rem] [--title-to:1rem] sm:[--title-from:2.25rem] sm:[--title-to:1.125rem]"
