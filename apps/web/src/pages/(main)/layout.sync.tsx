@@ -21,8 +21,20 @@ export const Component = () => {
   const photos = usePhotos()
   const location = useLocation()
 
-  // Only show the main gallery root on the home page or map page
+  // Only show the main gallery root on the home page or map page, and also behind the photo viewer
+  // when the viewer was opened from the gallery. Keeping the gallery mounted there is what lets
+  // closing a photo drop the visitor back at the same place in the timeline (scroll position,
+  // "Show more" batches and all) instead of at the top.
   const isGalleryRoute = location.pathname === '/' || location.pathname === '/map'
+  const isPhotoRoute = location.pathname.startsWith('/photos/')
+  const lastPageWasGalleryRef = useRef(false)
+  const showGallery = isGalleryRoute || (isPhotoRoute && lastPageWasGalleryRef.current)
+
+  useEffect(() => {
+    if (!isPhotoRoute) {
+      lastPageWasGalleryRef.current = isGalleryRoute
+    }
+  }, [isGalleryRoute, isPhotoRoute])
 
   return (
     <>
@@ -41,7 +53,7 @@ export const Component = () => {
           />
         )}
 
-        {isGalleryRoute && (
+        {showGallery && (
           isMobile ? (
             <ScrollElementContext value={document.body}>
               <PhotosRoot />
