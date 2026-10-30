@@ -167,9 +167,12 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
   const backLabel = t('metrics.back')
 
   return (
+    // The page is its own full-screen scroller (like the Work and Photography Rights pages). The app shell
+    // around it is overflow-hidden with no fixed height below the lg breakpoint, which stops a sticky
+    // header from ever sticking; a fixed scroller works at every width.
     // overflow-anchor is off because the header changes height while scrolling; scroll anchoring would
     // fight that and make the collapse jitter.
-    <div ref={scroller} className="relative h-full overflow-y-auto [overflow-anchor:none]">
+    <div ref={scroller} className="bg-background text-text fixed inset-0 z-10 overflow-y-auto [overflow-anchor:none]">
       <div
         ref={header}
         className="sticky top-0 z-30 [--title-from:1.875rem] [--title-to:1rem] sm:[--title-from:2.25rem] sm:[--title-to:1.125rem]"
