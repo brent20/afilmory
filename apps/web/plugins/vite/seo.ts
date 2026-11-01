@@ -15,8 +15,9 @@ import { MANIFEST_PATH } from './__internal__/constants'
  *
  *  1. Rewrites dist/index.html with a proper title, description, canonical URL,
  *     Open Graph / Twitter tags and JSON-LD (Person, ProfessionalService, WebSite).
- *  2. Emits dist/work/index.html (the "book a shoot" page) and
- *     dist/photography-rights/index.html (usage / copyright page).
+ *  2. Emits dist/work/index.html (the "book a shoot" page),
+ *     dist/photography-rights/index.html (usage / copyright page) and
+ *     dist/metrics/index.html (the "photography by the numbers" page).
  *  3. Emits dist/photos/<id>/index.html for every photo, each with its own title,
  *     description, canonical URL, JSON-LD ImageObject (with license info so Google
  *     Images can show the "Licensable" badge) and plain-HTML content + internal links.
@@ -143,6 +144,20 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       renderPage(template, rightsMeta, rightsBody(hire)),
     )
 
+    // 2c. Metrics page
+    const metricsMeta: PageMeta = {
+      title: `Metrics | ${siteConfig.name}`,
+      description: clip(
+        `${siteConfig.name}'s photography by the numbers: when, where and how the photos are made, favorite gear and focal lengths, places, color and more.`,
+        160,
+      ),
+      url: `${baseUrl}/metrics`,
+      image: defaultImage,
+      ogType: 'website',
+      jsonLd: [person, breadcrumb([['Home', `${baseUrl}/`], ['Metrics', `${baseUrl}/metrics`]])],
+    }
+    writeHtml(path.join(outDir, 'metrics', 'index.html'), renderPage(template, metricsMeta, metricsBody(photos.length)))
+
     // 3. Photo pages
     const sorted = [...photos].sort((a, b) => dateMs(b) - dateMs(a))
     let written = 0
@@ -177,7 +192,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       )
     }
 
-    console.info(`[seo-prerender] home, hire, rights, ${written} photo pages, sitemap.xml, robots.txt`)
+    console.info(`[seo-prerender] home, hire, rights, metrics, ${written} photo pages, sitemap.xml, robots.txt`)
   }
 
   function loadPhotos(): PhotoManifestItem[] {
@@ -387,7 +402,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
   }
 
   function nav(): string {
-    return `<nav><a href="/">Gallery</a> <a href="/work">Work together</a></nav>`
+    return `<nav><a href="/">Gallery</a> <a href="/metrics">Metrics</a> <a href="/work">Work together</a></nav>`
   }
 
   function homeBody(hire: HireConfig, photos: PhotoManifestItem[]): string {
@@ -415,6 +430,13 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
       + (showcase ? `<h2>Selected work</h2><ul>${showcase}</ul>` : '')
       + `<p><a href="${esc(hire.contactUrl || '/')}">Get in touch</a>${hire.email ? ` or email <a href="mailto:${esc(hire.email)}">${esc(hire.email)}</a>` : ''}</p>`
       + `</main>`
+  }
+
+  function metricsBody(photoCount: number): string {
+    return `<main>${nav()}<h1>${esc(siteConfig.name)}'s photography, by the numbers</h1>`
+      + `<p>A look behind the lens at ${photoCount > 0 ? `${photoCount.toLocaleString('en-US')} photographs` : 'the portfolio'}: when, where and how ${esc(siteConfig.name)} shoots, `
+      + `what gear gets used, favorite focal lengths, places, color and the habits that show up across the whole portfolio.</p>`
+      + `<p><a href="/">Browse the gallery</a></p></main>`
   }
 
   function rightsBody(hire: HireConfig): string {
@@ -461,6 +483,7 @@ export function createSeoPlugin(siteConfig: SiteConfig): Plugin {
     const urls = [
       `  <url>\n    <loc>${xml(`${baseUrl}/`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>1.0</priority>\n  </url>`,
       `  <url>\n    <loc>${xml(`${baseUrl}/work`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>0.9</priority>\n  </url>`,
+      `  <url>\n    <loc>${xml(`${baseUrl}/metrics`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>0.5</priority>\n  </url>`,
       `  <url>\n    <loc>${xml(`${baseUrl}/photography-rights`)}</loc>\n    <lastmod>${now}</lastmod>\n    <priority>0.4</priority>\n  </url>`,
       ...photos
         .filter((p) => isSafeId(p.id))
