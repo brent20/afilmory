@@ -189,14 +189,14 @@ const MoreActionMenu = () => {
           <DropdownMenuItem asChild>
             <Link to="/work" className="flex items-center gap-2">
               <i className="i-mingcute-mail-fill text-base" />
-              Contact
+              Work Together
             </Link>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
           <Link to="/photography-rights" className="flex items-center gap-2">
             <i className="i-mingcute-information-fill text-base" />
-            Usage info
+            Usage Info
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
