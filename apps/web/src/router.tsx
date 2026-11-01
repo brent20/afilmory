@@ -5,15 +5,15 @@ import { ErrorElement } from './components/common/ErrorElement'
 import { NotFound } from './components/common/NotFound'
 import { AppSkeleton } from './components/ui/app-skeleton'
 import { routes } from './generated-routes'
-import MetricsPage from './pages/(main)/metrics/index'
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
     children: [
-      { path: 'metrics', element: <MetricsPage /> },
-      ...routes, 
+      // Loaded on demand, like the other pages, so the Metrics code only downloads when someone opens it.
+      { path: 'metrics', lazy: () => import('./pages/(main)/metrics/index') },
+      ...routes,
     ],
     errorElement: <ErrorElement />,
     hydrateFallbackElement: <AppSkeleton />,
