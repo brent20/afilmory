@@ -16,8 +16,8 @@ const sections = [
   {
     title: 'Use of Photographs',
     paragraphs: [
-      'Photographs may not be copied, reproduced, modified, distributed, published, displayed, sold, or used for commercial purposes without prior written permission.',
-      'Downloading or viewing a photograph does not transfer ownership or grant a license to use, reproduce, or distribute the photograph.',
+      'Photographs may not be copied, reproduced, modified, distributed, published, displayed, sold, or used for commercial purposes without prior written permission. This includes copies made by downloading or screenshotting, and edits made with software or AI tools.',
+      'Downloading, viewing, or capturing a photograph does not transfer ownership or grant a license to use, reproduce, or distribute the photograph.',
     ],
   },
   {
