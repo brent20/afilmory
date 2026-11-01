@@ -1,6 +1,8 @@
 import type { ConsolaInstance } from 'consola'
 import consola from 'consola'
 
+import { translateLogArgs } from './translate.js'
+
 export type LogLevel = 'log' | 'info' | 'success' | 'warn' | 'error' | 'debug' | 'trace' | 'start' | 'fatal'
 
 export interface LogMessage {
@@ -63,10 +65,12 @@ function wrapInstance(instance: ConsolaInstance, tag: string): ConsolaInstance {
       }
 
       return (...args: any[]) => {
-        notifyListener(tag, String(property), args)
+        // Translate Chinese log text to English before it is printed / relayed.
+        const translatedArgs = translateLogArgs(args)
+        notifyListener(tag, String(property), translatedArgs)
 
         if (forwardToConsole) {
-          return Reflect.apply(value, target, args)
+          return Reflect.apply(value, target, translatedArgs)
         }
 
         return
