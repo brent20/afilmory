@@ -92,6 +92,24 @@ export const ActiveFiltersHero = () => {
     t,
   ])
 
+  // A collection is just a saved set of tags, so when nothing else is filtered the hero can stay simple.
+  const activeCollection = useMemo(() => {
+    const onlyTags =
+      gallerySetting.selectedCameras.length === 0 &&
+      gallerySetting.selectedLenses.length === 0 &&
+      gallerySetting.selectedRatings === null &&
+      !gallerySetting.selectedDateRange
+    if (!onlyTags) return null
+    return collections.find((item) => isCollectionSelected(item, gallerySetting.selectedTags)) ?? null
+  }, [
+    gallerySetting.selectedCameras,
+    gallerySetting.selectedDateRange,
+    gallerySetting.selectedLenses,
+    gallerySetting.selectedRatings,
+    gallerySetting.selectedTags,
+    collections,
+  ])
+
   const infoItems = useMemo(() => {
     const items: Array<{ key: string, icon: LucideIcon, label: string, value: string }> = []
     if (gallerySetting.selectedTags.length > 0) {
@@ -238,8 +256,12 @@ export const ActiveFiltersHero = () => {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.15),rgba(0,0,0,0)_60%)] opacity-70" />
 
       {/* Content */}
-      <div className="relative z-10 flex min-h-[320px] flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center px-6 pt-20 pb-12 text-center lg:px-12 lg:pt-28 lg:pb-16">
+      <div className={`relative z-10 flex flex-col ${activeCollection ? 'min-h-60' : 'min-h-[320px]'}`}>
+        <div
+          className={`flex flex-1 flex-col items-center justify-center px-6 pt-20 text-center lg:px-12 lg:pt-28 ${
+            activeCollection ? 'pb-10 lg:pb-12' : 'pb-12 lg:pb-16'
+          }`}
+        >
           <p className="text-xs font-medium tracking-[0.5em] text-white/60 uppercase">
             {t('gallery.filter.results', { count: photos.length })}
           </p>
@@ -247,7 +269,11 @@ export const ActiveFiltersHero = () => {
             {headline}
           </h2>
 
-          {infoItems.length > 0 && (
+          {activeCollection && (
+            <p className="mt-3 max-w-xl text-sm text-white/60">{activeCollection.matchedTags.join(' · ')}</p>
+          )}
+
+          {!activeCollection && infoItems.length > 0 && (
             <div className="mt-8 grid w-full max-w-4xl grid-cols-1 gap-3 text-left sm:grid-cols-2 lg:grid-cols-4">
               {infoItems.map(item => (
                 <div
@@ -264,7 +290,7 @@ export const ActiveFiltersHero = () => {
             </div>
           )}
 
-          {tagModeLabel && (
+          {!activeCollection && tagModeLabel && (
             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-1.5 text-xs font-medium tracking-[0.3em] text-white/65 uppercase backdrop-blur">
               <GitBranch className="size-3.5 text-white/70" />
               <span>
@@ -276,25 +302,31 @@ export const ActiveFiltersHero = () => {
             </div>
           )}
 
-          <div className="mt-8 flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-            <div className="flex min-w-0 flex-1 justify-center lg:justify-start">
-              <FilterChips
-                tags={gallerySetting.selectedTags}
-                cameras={gallerySetting.selectedCameras}
-                lenses={gallerySetting.selectedLenses}
-                rating={gallerySetting.selectedRatings}
-                dateRange={gallerySetting.selectedDateRange}
-                onRemoveTag={handleRemoveTag}
-                onRemoveCamera={handleRemoveCamera}
-                onRemoveLens={handleRemoveLens}
-                onRemoveRating={handleRemoveRating}
-                onRemoveDateRange={handleRemoveDateRange}
-              />
-            </div>
-            <div className="flex shrink-0 justify-center lg:justify-end">
+          {activeCollection ? (
+            <div className="mt-6">
               <HeroActions onClearAll={handleClearAll} onEditFilters={handleEditFilters} />
             </div>
-          </div>
+          ) : (
+            <div className="mt-8 flex w-full max-w-4xl flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
+              <div className="flex min-w-0 flex-1 justify-center lg:justify-start">
+                <FilterChips
+                  tags={gallerySetting.selectedTags}
+                  cameras={gallerySetting.selectedCameras}
+                  lenses={gallerySetting.selectedLenses}
+                  rating={gallerySetting.selectedRatings}
+                  dateRange={gallerySetting.selectedDateRange}
+                  onRemoveTag={handleRemoveTag}
+                  onRemoveCamera={handleRemoveCamera}
+                  onRemoveLens={handleRemoveLens}
+                  onRemoveRating={handleRemoveRating}
+                  onRemoveDateRange={handleRemoveDateRange}
+                />
+              </div>
+              <div className="flex shrink-0 justify-center lg:justify-end">
+                <HeroActions onClearAll={handleClearAll} onEditFilters={handleEditFilters} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

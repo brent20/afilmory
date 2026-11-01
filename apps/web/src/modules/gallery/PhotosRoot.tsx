@@ -133,7 +133,7 @@ export const PhotosRoot = () => {
           '**:select-none!',
           GALLERY_ROOMY_LAYOUT ? 'px-6 lg:px-24' : 'p-1 lg:px-0',
           GALLERY_ROOMY_LAYOUT ? 'pb-28 lg:pb-36' : 'pb-20 lg:pb-24',
-          !hasActiveFilters && (GALLERY_ROOMY_LAYOUT ? 'mt-20' : 'mt-12'),
+          GALLERY_ROOMY_LAYOUT ? (hasActiveFilters ? 'mt-10' : 'mt-20') : !hasActiveFilters && 'mt-12',
         )}
       >
         {COLLECTIONS_ENABLED && <CollectionsNav />}
