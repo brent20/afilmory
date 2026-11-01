@@ -109,7 +109,7 @@ export const TimelineRail = ({ photos, currentIndex, onJump }: TimelineRailProps
           {showYearNumber && (
             <span
               className={clsx(
-                'mr-1.5 font-mono text-[9px] leading-none tabular-nums transition-colors duration-150',
+                'mr-1.5 text-[10px] leading-none tabular-nums transition-colors duration-150',
                 groups[activeGroup].year === group.year ? 'text-white' : 'text-white/50',
               )}
             >
@@ -129,7 +129,7 @@ export const TimelineRail = ({ photos, currentIndex, onJump }: TimelineRailProps
           )}
           {/* Month and year of the tick being pointed at */}
           {(isHover || (dragging && isActive)) && (
-            <span className="pointer-events-none absolute top-1/2 right-[22px] -translate-y-1/2 rounded-sm bg-black/70 px-1.5 py-0.5 font-mono text-[10px] whitespace-nowrap text-white tabular-nums backdrop-blur-sm">
+            <span className="pointer-events-none absolute top-1/2 right-[22px] -translate-y-1/2 rounded-sm bg-black/70 px-1.5 py-0.5 text-xs whitespace-nowrap text-white tabular-nums backdrop-blur-sm">
               {labelFor(group)}
             </span>
           )}
@@ -155,7 +155,7 @@ export const TimelineRail = ({ photos, currentIndex, onJump }: TimelineRailProps
       <div className="pointer-events-auto flex items-stretch gap-1.5">
         {/* Ruler style: month and year of the tick being pointed at, or of the current position */}
         {!isMeter && (
-          <div className="text-text-secondary flex w-[3.25rem] items-center justify-end font-mono text-[10px] tracking-wide whitespace-nowrap tabular-nums">
+          <div className="text-text-secondary flex w-16 items-center justify-end text-xs whitespace-nowrap tabular-nums">
             <span className={clsx('transition-opacity', dragging || hoverGroup !== null ? 'opacity-100' : 'opacity-70')}>
               {labelFor(groups[shownGroup])}
             </span>

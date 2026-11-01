@@ -18,7 +18,7 @@ export const CollectionTiles = () => {
 
   return (
     <section className="mt-28" aria-label="Browse collections">
-      <h2 className="mb-6 text-center text-[11px] tracking-[0.18em] text-white/50 uppercase">Browse collections</h2>
+      <h2 className="text-text-secondary mb-6 text-center text-xs font-semibold tracking-wider uppercase">Browse collections</h2>
       <div className="mx-auto grid max-w-5xl grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
         {others.map((collection) => (
           <Link
@@ -38,8 +38,8 @@ export const CollectionTiles = () => {
             )}
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 flex items-baseline justify-between p-3 text-white">
-              <span className="text-sm">{collection.title}</span>
-              <span className="font-mono text-[10px] tabular-nums opacity-70">{collection.count}</span>
+              <span className="text-sm font-medium">{collection.title}</span>
+              <span className="text-xs tabular-nums opacity-70">{collection.count}</span>
             </div>
           </Link>
         ))}

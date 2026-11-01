@@ -152,10 +152,10 @@ export const PhotosRoot = () => {
                 trackEvent('show_more', { photos_shown: Math.min(visibleCount + GALLERY_BATCH_SIZE, allPhotos.length) })
                 setVisibleCount((count) => count + GALLERY_BATCH_SIZE)
               }}
-              className="text-text-secondary border-white/20 hover:border-white/60 rounded-full border px-6 py-2 text-sm transition-colors duration-200 hover:text-white"
+              className="text-text-secondary border-white/20 hover:border-white/60 rounded-full border px-6 py-2 text-sm font-medium transition-colors duration-200 hover:text-white"
             >
               Show more
-              <span className="ml-2 font-mono text-xs tabular-nums opacity-60">
+              <span className="ml-2 text-xs font-normal tabular-nums opacity-60">
                 {remaining} left
               </span>
             </button>

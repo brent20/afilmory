@@ -23,14 +23,14 @@ export const CollectionsNav = () => {
 
   const linkClass = (active: boolean) =>
     clsx(
-      'border-b pb-1 transition-colors duration-200',
-      active ? 'border-white text-white' : 'border-transparent text-white/50 hover:text-white',
+      'focus-visible:text-text border-b pb-1 transition-colors duration-200',
+      active ? 'text-text border-text' : 'text-text-secondary hover:text-text border-transparent',
     )
 
   return (
     <nav
       aria-label="Collections"
-      className="mb-12 flex flex-wrap items-baseline justify-center gap-x-7 gap-y-3 text-[11px] tracking-[0.18em] uppercase"
+      className="mb-12 flex flex-wrap items-baseline justify-center gap-x-6 gap-y-3 text-sm font-medium"
     >
       <Link to="/" className={linkClass(noFilters)}>
         All
@@ -38,7 +38,7 @@ export const CollectionsNav = () => {
       {collections.map((collection) => (
         <Link key={collection.slug} to={collection.href} className={linkClass(isCollectionSelected(collection, selectedTags))}>
           {collection.title}
-          <sup className="ml-1 font-mono text-[9px] tracking-normal opacity-60">{collection.count}</sup>
+          <span className="text-text-tertiary ml-1.5 text-xs font-normal tabular-nums">{collection.count}</span>
         </Link>
       ))}
     </nav>
