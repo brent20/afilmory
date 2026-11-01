@@ -7,7 +7,7 @@ import {
 } from '@afilmory/ui'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import { LogIn, LogOut, User, BarChart3 } from 'lucide-react'
+import { LogIn, LogOut, User } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
@@ -18,14 +18,11 @@ import { sessionMembershipAtom, sessionUserAtom } from '~/atoms/session'
 import { injectConfig, siteConfig } from '~/config'
 import { useMobile } from '~/hooks/useMobile'
 import { authApi, canAccessDashboard } from '~/lib/api/auth'
+import { isPrivateShare } from '~/lib/private-share'
 
 import { UserAvatar } from '../../social/comments/UserAvatar'
 import { ViewPanel } from '../panels/ViewPanel'
 import { ActionIconButton, resolveSocialUrl } from './utils'
-
-// The Metrics page isn't ready yet, so its header button is hidden.
-// Change this to `true` to show the button again.
-const SHOW_METRICS_BUTTON = false
 
 export const PageHeaderRight = () => {
   const { t } = useTranslation()
@@ -64,9 +61,9 @@ export const PageHeaderRight = () => {
               title={t('action.map.explore')}
               onClick={() => navigate('/map')}
             />
-            {SHOW_METRICS_BUTTON && (
+            {!isPrivateShare() && (
               <ActionIconButton
-                icon={<BarChart3 className="size-3.5 lg:size-4" />}
+                icon="i-mingcute-chart-bar-line"
                 title={t('gallery.metrics.title' as any) || 'Metrics'}
                 onClick={() => navigate('/metrics')}
               />
@@ -156,6 +153,14 @@ const MoreActionMenu = () => {
 
         <DropdownMenuSeparator />
 
+        {!isPrivateShare() && (
+          <DropdownMenuItem asChild>
+            <Link to="/metrics" className="flex items-center gap-2">
+              <i className="i-mingcute-chart-bar-line text-base" />
+              {t('gallery.metrics.title' as any) || 'Metrics'}
+            </Link>
+          </DropdownMenuItem>
+        )}
         {githubUrl && (
           <DropdownMenuItem asChild>
             <a href={githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2">
