@@ -1,13 +1,13 @@
 {
   "email": "hello@brentsaltzman.com",
-  "contactUrl": "https://brentsaltzman.com/contact/",
+  "contactUrl": "https://photography.brentsaltzman.com/work",
   "location": {
     "city": "Omaha",
     "region": "Nebraska",
     "country": "US"
   },
- "headline": "Working together",
-  "intro": "I'm drawn to unposed, candid moments, and to the places, events and buildings where they happen. I like frames that feel found rather than staged. If you have a project in mind and think my work might be a fit, I'd love to hear about it.",
+  "headline": "Working together",
+  "intro": "I'm drawn to unposed, candid moments, and to the places, events and buildings where they happen. I like frames that feel found rather than staged. I'm open to paid work in the Omaha area, including events, community coverage, conferences and architecture. If you have a project in mind, send me the details and I'll let you know if I can help.",
   "services": [
     {
       "name": "Unposed & candid moments",
@@ -15,7 +15,7 @@
     },
     {
       "name": "Places & events",
-      "description": "Landscapes, travel and destinations, plus documentary-style coverage of events and gatherings."
+      "description": "Documentary-style coverage of local events, conferences and gatherings, plus landscapes and destinations."
     },
     {
       "name": "Buildings & architecture",
@@ -27,12 +27,12 @@
     }
   ],
   "contactHeading": "Get in touch",
-  "contactText": "Have a question about a project, a photo, licensing or how an image can be used? Send me a note and I'll get back to you.",
+  "contactText": "Have a project, event or licensing question? Send me the date, location and what you need, and I'll get back to you with my availability.",
   "keywords": [
+    "event photographer",
     "candid photographer",
     "documentary event photography",
-    "landscape photographer",
     "architecture photographer",
-    "interior photography"
+    "Omaha photographer"
   ]
 }
