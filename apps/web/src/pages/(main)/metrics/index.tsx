@@ -2,6 +2,7 @@ import { photoLoader } from '@afilmory/data'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useTitle } from '~/hooks/useTitle'
 import type { ColourMetrics } from '~/lib/metrics'
 import { computeColourMetrics, computeMetrics } from '~/lib/metrics'
 import { computeExtras } from '~/lib/metrics-extras'
@@ -11,15 +12,8 @@ import { MetricsPage } from '~/modules/metrics/MetricsPage'
 export const Component = () => {
   const { t } = useTranslation()
 
-  // Reachable by URL only for now: ask search engines not to index it.
-  // (public/_headers sends the same instruction from the server.)
-  useEffect(() => {
-    const meta = document.createElement('meta')
-    meta.name = 'robots'
-    meta.content = 'noindex, nofollow'
-    document.head.append(meta)
-    return () => meta.remove()
-  }, [])
+  // Tab title, put back to the previous one when leaving.
+  useTitle('Metrics')
 
   // Always analyze the whole library, not whatever filters are active in the gallery.
   const photos = useMemo(() => photoLoader.getPhotos().filter(photo => !isExcludedFromMetrics(photo)), [])
