@@ -132,7 +132,7 @@ export const Component = () => {
   const avatarUrl = siteConfig.author.avatar
   const requestSubject = 'Photography inquiry'
   const requestBody =
-    "Hi Brent,\n\nI'd like to talk about a photography project.\n\nOrganization:\nDate and time:\nLocation:\nWhat needs to be photographed:\nDeadline for images:\nIntended use:\nBudget:\n\nThanks,"
+    "Hi Brent,\n\nI'd like to talk about a photography project.\n\nOrganization:\nDate and time:\nLocation:\nWhat needs to be photographed:\nDeadline for images:\nIntended use:\nBudget:\nAnything else I should know (special requests, must-have shots, on-site contact):\n\nThanks,"
   const contactUrl = work.email
     ? `mailto:${work.email}?subject=${encodeURIComponent(requestSubject)}&body=${encodeURIComponent(requestBody)}`
     : work.contactUrl || siteConfig.author.url
@@ -189,7 +189,7 @@ export const Component = () => {
                   </a>
                   {work.email && (
                     <a
-                      href={`mailto:${work.email}`}
+                      href={contactUrl}
                       className="text-text-secondary hover:text-text text-sm break-all underline-offset-2 transition-colors hover:underline"
                     >
                       {work.email}
