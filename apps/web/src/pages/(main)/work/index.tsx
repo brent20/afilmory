@@ -130,7 +130,12 @@ export const Component = () => {
 
   const usageUrl = siteConfig.social?.usage?.trim()
   const avatarUrl = siteConfig.author.avatar
-  const contactUrl = work.email ? `mailto:${work.email}` : work.contactUrl || siteConfig.author.url
+  const requestSubject = 'Photography inquiry'
+  const requestBody =
+    "Hi Brent,\n\nI'd like to talk about a photography project.\n\nOrganization:\nDate and time:\nLocation:\nWhat needs to be photographed:\nDeadline for images:\nIntended use:\nBudget:\n\nThanks,"
+  const contactUrl = work.email
+    ? `mailto:${work.email}?subject=${encodeURIComponent(requestSubject)}&body=${encodeURIComponent(requestBody)}`
+    : work.contactUrl || siteConfig.author.url
 
   return (
     <>
@@ -209,7 +214,7 @@ export const Component = () => {
 
             {/* Right: what I enjoy shooting + featured work */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Kinds of work I enjoy</h2>
+              <h2 className="mb-4 text-xl font-semibold">Kinds of work I take on</h2>
               <ul className="grid gap-3 sm:grid-cols-2">
                 {work.services.map((service) => (
                   <li key={service.name} className="bg-material-medium/40 border-fill-tertiary rounded-2xl border p-5">
