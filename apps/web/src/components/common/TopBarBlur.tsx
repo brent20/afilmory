@@ -17,9 +17,12 @@ const isIosSafari = () => {
   return isIos && !isOtherBrowser
 }
 
-// How far the blur reaches above the top of the page area, and how far it overlaps the header's own blur.
+// How far the blur reaches above the top of the page area, and how far it reaches down under the header.
+// The part under the header fades out; it exists so that when the layer trails the page during a fast
+// scroll there is still blur at the header's top edge instead of a thin sharp strip.
 const REACH = '40svh'
-const OVERLAP = 24
+const OVERLAP = 56
+const FADE = `linear-gradient(to bottom, #000 calc(100% - ${OVERLAP}px), transparent)`
 
 export const TopBarBlur = () => {
   const [enabled, setEnabled] = useState(false)
@@ -56,7 +59,7 @@ export const TopBarBlur = () => {
       ref={ref}
       aria-hidden
       className="bg-background/50 pointer-events-none absolute inset-x-0 top-0 z-25 backdrop-blur-[56px]"
-      style={{ height: REACH }}
+      style={{ height: REACH, maskImage: FADE, WebkitMaskImage: FADE }}
     />,
     document.body,
   )
