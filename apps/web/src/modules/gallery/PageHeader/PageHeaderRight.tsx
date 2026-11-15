@@ -11,7 +11,6 @@ import { LogIn, LogOut, User } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
-import { Drawer } from 'vaul'
 
 import { gallerySettingAtom, isCommandPaletteOpenAtom } from '~/atoms/app'
 import { sessionMembershipAtom, sessionUserAtom } from '~/atoms/session'
@@ -71,18 +70,16 @@ export const PageHeaderRight = () => {
           </>
         )}
 
-        {isMobile ? (
-          <MobileViewButton
-            icon="i-mingcute-layout-grid-line"
-            title={t('action.view.title')}
-            badge={hasViewCustomization ? '●' : undefined}
-          >
-            <ViewPanel />
-          </MobileViewButton>
-        ) : (
+        {/* Desktop only: sort lives in its own dropdown (masonry/list is the segment to the left).
+            On mobile, sort is folded into the 3-dot menu. */}
+        {!isMobile && (
           <DesktopViewButton
-            icon="i-mingcute-layout-grid-line"
-            title={t('action.view.title')}
+            icon={
+              gallerySetting.sortOrder === 'asc'
+                ? 'i-mingcute-sort-ascending-line'
+                : 'i-mingcute-sort-descending-line'
+            }
+            title={t('action.sort.mode')}
             badge={hasViewCustomization ? '●' : undefined}
           >
             <ViewPanel />
@@ -116,6 +113,7 @@ const MoreActionMenu = () => {
       : undefined
   const hasRss = true
   const contactUrl = siteConfig.social?.contact?.trim() || siteConfig.author.url
+  const hasSortCustomization = settings.sortOrder !== 'desc'
 
   return (
     <DropdownMenu>
@@ -126,6 +124,11 @@ const MoreActionMenu = () => {
           aria-label="More options"
         >
           <i className="i-mingcute-more-2-line text-lg" aria-hidden="true" />
+          {hasSortCustomization && (
+            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-blue-500">
+              <span className="sr-only">{t('action.sort.oldest.first')}</span>
+            </span>
+          )}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[180px]">
@@ -149,6 +152,29 @@ const MoreActionMenu = () => {
             {t('gallery.view.list')}
           </span>
           {settings.viewMode === 'list' && <i className="i-mingcute-check-line text-base" />}
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem
+          onClick={() => setSettings(prev => ({ ...prev, sortOrder: 'desc' }))}
+          className="justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <i className="i-mingcute-sort-descending-line text-base" />
+            {t('action.sort.newest.first')}
+          </span>
+          {settings.sortOrder === 'desc' && <i className="i-mingcute-check-line text-base" />}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => setSettings(prev => ({ ...prev, sortOrder: 'asc' }))}
+          className="justify-between"
+        >
+          <span className="flex items-center gap-2">
+            <i className="i-mingcute-sort-ascending-line text-base" />
+            {t('action.sort.oldest.first')}
+          </span>
+          {settings.sortOrder === 'asc' && <i className="i-mingcute-check-line text-base" />}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -234,47 +260,6 @@ const DesktopViewButton = ({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center">{children}</DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-const MobileViewButton = ({
-  icon,
-  title,
-  badge,
-  children,
-}: {
-  icon: string
-  title: string
-  badge?: number | string
-  children: React.ReactNode
-}) => {
-  const [open, setOpen] = useState(false)
-  return (
-    <>
-      <button
-        type="button"
-        className="relative flex size-7 items-center justify-center rounded text-white/60 transition-colors duration-200 hover:bg-white/10 hover:text-white lg:size-8"
-        title={title}
-        aria-label={title}
-        onClick={() => setOpen(!open)}
-      >
-        <i className={`${icon} text-sm lg:text-base`} aria-hidden="true" />
-        {badge && (
-          <span className="absolute -top-0.5 -right-0.5 flex size-2 items-center justify-center rounded-full bg-blue-500 lg:size-2.5">
-            <span className="sr-only">{badge}</span>
-          </span>
-        )}
-      </button>
-      <Drawer.Root open={open} onOpenChange={setOpen}>
-        <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm" />
-          <Drawer.Content className="fixed right-0 bottom-0 left-0 z-50 flex flex-col rounded-t-2xl border-t border-zinc-200 bg-white/80 p-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-black/80">
-            <div className="mx-auto mb-4 h-1.5 w-12 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            {children}
-          </Drawer.Content>
-        </Drawer.Portal>
-      </Drawer.Root>
-    </>
   )
 }
 
