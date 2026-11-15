@@ -52,7 +52,8 @@ const pickFeatured = (): Photo[] => {
 /**
  * Same navbar as the gallery (blur, height, logo/title/icons on the left) so moving
  * between the gallery and this page feels like one continuous site. The right side
- * swaps the gallery-only view controls for search, map and a way back.
+ * swaps the gallery-only view controls for search and map; the back button in the
+ * page itself is the way back.
  */
 const WorkHeader = () => {
   const { t } = useTranslation()
@@ -83,7 +84,6 @@ const WorkHeader = () => {
               onClick={() => navigate('/map')}
             />
           )}
-          <ActionIconButton icon="i-mingcute-layout-grid-line" title="Gallery" onClick={() => navigate('/')} />
         </div>
       </div>
     </header>

@@ -76,7 +76,6 @@ const RightsHeader = () => {
               onClick={() => navigate('/map')}
             />
           )}
-          <ActionIconButton icon="i-mingcute-layout-grid-line" title="Gallery" onClick={() => navigate('/')} />
         </div>
       </div>
     </header>
