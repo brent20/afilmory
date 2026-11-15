@@ -105,7 +105,7 @@ export const TopBarBlur = () => {
       <div
         ref={ref}
         aria-hidden
-        className={`bg-background/75 pointer-events-none absolute inset-x-0 top-0 z-25 backdrop-blur-[56px] ${mode === 'css' ? 'top-bar-blur-follow' : ''}`}
+        className={`bg-background/40 pointer-events-none absolute inset-x-0 top-0 z-25 backdrop-blur-[56px] ${mode === 'css' ? 'top-bar-blur-follow' : ''}`}
         style={{
           height: REACH,
           maskImage: FADE,
