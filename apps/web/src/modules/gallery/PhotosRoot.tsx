@@ -24,9 +24,9 @@ import { ActionPanel } from './ActionPanel'
 import { ActiveFiltersHero } from './ActiveFiltersHero'
 import { CollectionsNav } from './CollectionsNav'
 import { CollectionTiles } from './CollectionTiles'
+import { GalleryFooter } from './GalleryFooter'
 import { ListView } from './ListView'
 import { MasonryView } from './MasonryView'
-import { PageFooter } from './PageFooter'
 import { PageHeader } from './PageHeader'
 import { TimelineRail } from './TimelineRail'
 
@@ -134,7 +134,7 @@ export const PhotosRoot = () => {
           'pt-safe lg:pt-0',
           '**:select-none!',
           GALLERY_ROOMY_LAYOUT ? 'px-6 lg:px-24' : 'p-1 lg:px-0',
-          GALLERY_ROOMY_LAYOUT ? 'pb-28 lg:pb-36' : 'pb-20 lg:pb-24',
+          GALLERY_ROOMY_LAYOUT ? 'pb-10 lg:pb-12' : 'pb-6 lg:pb-8',
           GALLERY_ROOMY_LAYOUT ? (hasActiveFilters ? 'mt-10' : 'mt-20') : !hasActiveFilters && 'mt-12',
         )}
       >
@@ -165,13 +165,13 @@ export const PhotosRoot = () => {
         )}
 
         {COLLECTIONS_ENABLED && <CollectionTiles />}
+
+        <GalleryFooter />
       </div>
 
       {GALLERY_TIMELINE && viewMode !== 'list' && (
         <TimelineRail photos={allPhotos} currentIndex={firstVisibleIndex} onJump={handleJump} />
       )}
-
-      <PageFooter />
 
       <ActionPanel
         open={!!activePanel}

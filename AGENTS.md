@@ -168,6 +168,6 @@ Key implications when changing things:
 Two configs, two purposes — don't conflate them:
 
 - `builder.config.ts` (+ `builder.config.default.ts` template) → **infrastructure**: storage provider, concurrency, worker/cluster mode, repo sync plugin. Consumed only by `packages/builder`.
-- `site.config.ts` + `config.json` → **presentation**: name, description, author, social, accent color, map provider/style/projection, feed, beian. Consumed by SPA, SSR, and backend for consistent branding.
+- `site.config.ts` + `config.json` → **presentation**: name, description, author, social, accent color, map provider/style/projection, feed. Consumed by SPA, SSR, and backend for consistent branding.
 
 Environment variables flow through `env.ts` (root — S3 + `PG_CONNECTION_STRING` + `GIT_TOKEN`) and `@afilmory/env` (backend) — both validate via Zod / `@t3-oss/env-core`.

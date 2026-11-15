@@ -104,7 +104,7 @@ together: a material fill, a backdrop blur matched to its role, and a hairline b
 | Floating panel, menu, popover, toast, viewer chrome | `backdrop-blur-2xl` | `context-menu`, `dropdown-menu`, `hover-card`, `dialog`, `sonner`, `tooltip`, `InspectorPanel`, `ExifPanel`, `FloatingActionButton`, `PhotoViewer` chrome |
 | Secondary control floating **on a photograph** | `backdrop-blur-md` | `MasonryPhotoItem` badges, `ListView` overlays, map markers, `FilterChip`, `GlassButton` |
 | Scrim / overlay behind a modal | `backdrop-blur-sm` | `Dialog.Overlay`, `ActionPanel` overlay |
-| Top / bottom fade band over scrolling content | `<LinearBlur />` | `PageHeader`, `PageFooter` |
+| Top / bottom fade band over scrolling content | `<LinearBlur />` | `PageHeader` |
 
 `LinearBlur` (`packages/ui/src/progressive-blur`) is a *progressive* blur: 8 stacked
 `backdrop-filter` layers under `linear-gradient` masks. It is not interchangeable with
