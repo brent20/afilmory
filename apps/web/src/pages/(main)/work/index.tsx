@@ -60,14 +60,14 @@ const WorkHeader = () => {
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
 
   return (
-    <header className="pt-safe fixed top-0 right-0 left-0 z-100 lg:pt-0">
+    <header className="fixed top-0 right-0 left-0 z-100 max-lg:h-0">
       <LinearBlur
         className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
         strength={128}
         side="top"
       />
-      <div className="flex h-12 items-center justify-between gap-2 px-3 lg:gap-3 lg:px-4">
+      <div className="flex h-[calc(3rem+env(safe-area-inset-top))] items-center justify-between gap-2 px-3 pt-[env(safe-area-inset-top)] lg:h-12 lg:gap-3 lg:px-4 lg:pt-0">
         <PageHeaderLeft />
         <div className="bg-material-medium/40 flex items-center gap-1 rounded-lg">
           <ActionIconButton
