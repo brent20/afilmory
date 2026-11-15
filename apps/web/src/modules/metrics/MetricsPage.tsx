@@ -294,7 +294,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
         ref={header}
         className="sticky top-0 z-30 mx-auto w-[85%] max-lg:pointer-events-none lg:w-full [--title-from:1.875rem] [--title-to:1rem] sm:[--title-from:2.25rem] sm:[--title-to:1.125rem]"
       >
-        <TopBarBlur className="max-lg:right-auto max-lg:left-[calc(50%-50vw)] max-lg:w-screen" />
+        <TopBarBlur />
         <LinearBlur
           className="pointer-events-none absolute inset-x-0 top-0 z-[-1] h-[calc(100%+1.5rem)] max-lg:right-auto max-lg:left-[calc(50%-50vw)] max-lg:w-screen"
           tint="var(--color-background)"
