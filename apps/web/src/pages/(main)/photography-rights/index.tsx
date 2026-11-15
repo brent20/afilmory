@@ -1,7 +1,7 @@
 import { GlassButton, LinearBlur } from '@afilmory/ui'
 import { useSetAtom } from 'jotai'
 import { m } from 'motion/react'
-import { startTransition, useEffect } from 'react'
+import { startTransition, useEffect, useLayoutEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 
@@ -53,9 +53,9 @@ const RightsHeader = () => {
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-100">
+    <header className="pt-safe fixed top-0 right-0 left-0 z-100 lg:pt-0">
       <LinearBlur
-        className="pointer-events-none absolute inset-x-0 z-[-1] h-15"
+        className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
         strength={128}
         side="top"
@@ -94,16 +94,21 @@ export const Component = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
 
+  // On phones the whole page scrolls, so start every visit at the top.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   return (
     <>
       <RightsHeader />
       <m.div
-        className="bg-background text-text fixed inset-0 z-10 overflow-y-auto"
+        className="bg-background text-text min-h-svh lg:fixed lg:inset-0 lg:z-10 lg:min-h-0 lg:overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <div className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-8 sm:pt-24 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-4 pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(3rem+env(safe-area-inset-bottom))] sm:px-8 sm:pt-24 sm:pb-20">
           {/* Same back button as the map and work pages */}
           <GlassButton
             className="mb-6 sm:mb-8"

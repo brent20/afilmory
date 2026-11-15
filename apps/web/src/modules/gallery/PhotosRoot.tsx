@@ -11,6 +11,7 @@ import { useVisiblePhotosDateRange } from '~/hooks/useVisiblePhotosDateRange'
 import { trackEvent } from '~/lib/analytics'
 import { COLLECTIONS_ENABLED } from '~/lib/collections'
 import { isPrivateShare } from '~/lib/private-share'
+import { getScrollEventTarget, getScrollTop } from '~/lib/scroll-target'
 import {
   GALLERY_BATCH_SIZE,
   GALLERY_ROOMY_LAYOUT,
@@ -105,14 +106,14 @@ export const PhotosRoot = () => {
   useEffect(() => {
     if (!scrollElement) return
 
+    const scrollTarget = getScrollEventTarget(scrollElement)
     const handleScroll = () => {
-      const { scrollTop } = scrollElement
-      setShowFloatingActions(scrollTop > 500)
+      setShowFloatingActions(getScrollTop(scrollElement) > 500)
     }
 
-    scrollElement.addEventListener('scroll', handleScroll, { passive: true })
+    scrollTarget.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
-      scrollElement.removeEventListener('scroll', handleScroll)
+      scrollTarget.removeEventListener('scroll', handleScroll)
     }
   }, [scrollElement])
 
@@ -130,6 +131,7 @@ export const PhotosRoot = () => {
 
       <div
         className={clsx(
+          'pt-safe lg:pt-0',
           '**:select-none!',
           GALLERY_ROOMY_LAYOUT ? 'px-6 lg:px-24' : 'p-1 lg:px-0',
           GALLERY_ROOMY_LAYOUT ? 'pb-28 lg:pb-36' : 'pb-20 lg:pb-24',

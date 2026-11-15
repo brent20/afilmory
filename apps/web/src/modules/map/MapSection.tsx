@@ -146,7 +146,7 @@ const MapSectionContent = () => {
   }
 
   return (
-    <div className="absolute h-full w-full">
+    <div className="fixed inset-0 h-full w-full">
       {/* Back button */}
       <MapBackButton />
 

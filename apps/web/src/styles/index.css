@@ -8,6 +8,27 @@ body {
   @apply grow h-0 shrink-0 overflow-auto relative;
 }
 
+/*
+ * Phones and tablets: let the page itself scroll instead of <body>.
+ * Safari (iOS 26 Liquid Glass) only collapses its address bar and lets content run to the
+ * screen edges when the document scrolls. Desktop keeps the fixed-shell layout above.
+ */
+@media screen and (max-width: 1023px) {
+  html {
+    position: static;
+    display: block;
+    overflow: visible;
+    /* Safari tints its glass bars from the page background */
+    background-color: var(--color-background);
+  }
+
+  html body {
+    height: auto;
+    min-height: 100svh;
+    overflow-y: visible;
+  }
+}
+
 @media screen and (min-width: 1024px) {
   ::-webkit-scrollbar-thumb {
     background-color: transparent;

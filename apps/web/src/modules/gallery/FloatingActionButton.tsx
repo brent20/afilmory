@@ -90,7 +90,7 @@ export const FloatingActionButton = ({
     <AnimatePresence>
       {isVisible && (
         <m.div
-          className="fixed right-4 bottom-6 z-50"
+          className="fixed right-[max(1rem,env(safe-area-inset-right))] bottom-[max(1.5rem,env(safe-area-inset-bottom))] z-50"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}

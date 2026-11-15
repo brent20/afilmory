@@ -1,6 +1,14 @@
 import { useScrollViewElement } from '@afilmory/ui'
 import { getViewerTransitionTriggerProps } from '@afilmory/viewer-motion'
-import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+  elementScroll,
+  observeElementOffset,
+  observeElementRect,
+  observeWindowOffset,
+  observeWindowRect,
+  useVirtualizer,
+  windowScroll,
+} from '@tanstack/react-virtual'
 import {
   Aperture,
   Calendar,
@@ -18,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useMobile } from '~/hooks/useMobile'
 import { useContextPhotos, usePhotoViewer } from '~/hooks/usePhotoViewer'
+import { isDocumentScroller } from '~/lib/scroll-target'
 import { photoAltText } from '~/lib/photo-alt'
 import { formatExifData } from '~/modules/metadata'
 import type { PhotoManifest } from '~/types/photo'
@@ -36,9 +45,15 @@ export const ListView = ({ photos }: ListViewProps) => {
   const cardHeight = isMobile ? 300 : 176 // 移动端给一个初始估算值
   const estimateSize = () => cardHeight + gap
 
-  const virtualizer = useVirtualizer({
+  // On phones the whole page scrolls, so the virtualizer has to watch the window instead of an element.
+  const pageScrolls = isDocumentScroller(scrollElement)
+
+  const virtualizer = useVirtualizer<any, HTMLElement>({
     count: photos.length,
-    getScrollElement: () => scrollElement,
+    getScrollElement: () => (pageScrolls ? (window as any) : scrollElement),
+    observeElementRect: pageScrolls ? (observeWindowRect as any) : observeElementRect,
+    observeElementOffset: pageScrolls ? (observeWindowOffset as any) : observeElementOffset,
+    scrollToFn: pageScrolls ? (windowScroll as any) : elementScroll,
     estimateSize,
     overscan: 5,
     // 移动端需要动态测量，桌面端使用固定高度

@@ -14,6 +14,8 @@ import { createPositioner, createResizeObserver, useMasonry, useScrollToIndex } 
 import { useForceUpdate } from 'motion/react'
 import * as React from 'react'
 
+import { getScrollEventTarget, getScrollTop } from '~/lib/scroll-target'
+
 export interface MasonryRef {
   reposition: () => void
 }
@@ -35,15 +37,16 @@ export const Masonry = <Item,>(props: MasonryProps<Item> & { ref?: React.Ref<Mas
     if (!scrollElement) return
 
     const scrollTimer: number | null = null
+    const scrollTarget = getScrollEventTarget(scrollElement)
     const handleScroll = throttle(() => {
       setIsScrolling(true)
-      setScrollTop(scrollElement.scrollTop)
+      setScrollTop(getScrollTop(scrollElement))
     }, 1000 / fps)
 
-    scrollElement.addEventListener('scroll', handleScroll)
+    scrollTarget.addEventListener('scroll', handleScroll, { passive: true })
 
     return () => {
-      scrollElement.removeEventListener('scroll', handleScroll)
+      scrollTarget.removeEventListener('scroll', handleScroll)
       if (scrollTimer) {
         clearTimeout(scrollTimer)
       }

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useNavigationType } from 'react-router'
 
 import { siteConfig } from '~/config'
+import { getActiveScroller } from '~/lib/scroll-target'
 
 import type { MetricsData } from './insights'
 import { ColorSection } from './sections/Color'
@@ -87,7 +88,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     }
     const href = link.getAttribute('href') ?? ''
     savedPosition = {
-      scrollTop: root.scrollTop,
+      scrollTop: getActiveScroller(root).scrollTop,
       anchor: {
         href,
         index: findPhotoLinks(root, href).indexOf(link),
@@ -104,8 +105,12 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     const saved = savedPosition
     if (!cameBack || !saved || !root) {
       savedPosition = null
+      // On phones the whole page scrolls, so start a fresh visit at the top.
+      window.scrollTo(0, 0)
       return
     }
+    // The page's own box on desktop, the whole page on phones
+    const scrollEl = getActiveScroller(root)
 
     // Near the very top the header is still collapsing, which moves everything under it, so the link
     // position is only trusted once the header has finished collapsing.
@@ -124,7 +129,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
       if (anchor && link) {
         const delta = link.getBoundingClientRect().top - anchor.offset
         if (Math.abs(delta) > 1) {
-          root.scrollTop += delta
+          scrollEl.scrollTop += delta
           steady = 0
         }
         else {
@@ -132,8 +137,8 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
         }
       }
       else {
-        root.scrollTop = saved.scrollTop
-        steady = !anchor && Math.abs(root.scrollTop - saved.scrollTop) <= 1 ? steady + 1 : 0
+        scrollEl.scrollTop = saved.scrollTop
+        steady = !anchor && Math.abs(scrollEl.scrollTop - saved.scrollTop) <= 1 ? steady + 1 : 0
       }
       // Stop once it has held still for a few frames, or after about three seconds.
       if (steady < 8 && frames < 180) {
@@ -185,7 +190,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     const update = () => {
       frame = 0
       const root = scroller.current
-      const scrolling = root && root.scrollHeight > root.clientHeight ? root : document.scrollingElement
+      const scrolling = getActiveScroller(root)
 
       applyProgress((scrolling?.scrollTop ?? 0) / COLLAPSE_DISTANCE)
 
@@ -263,7 +268,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     const rootTop = root.getBoundingClientRect().top
     const top = target.getBoundingClientRect().top - rootTop + root.scrollTop - collapsedHeight - SECTION_GAP
     applyProgress(current)
-    root.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' })
+    getActiveScroller(root).scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' })
   }
 
   const back = () => {
@@ -282,7 +287,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     <div
       ref={scroller}
       onClickCapture={rememberPosition}
-      className="bg-background text-text fixed inset-0 z-10 overflow-y-auto [overflow-anchor:none]"
+      className="bg-background text-text min-h-svh lg:fixed lg:inset-0 lg:z-10 lg:min-h-0 lg:overflow-y-auto [overflow-anchor:none]"
     >
       <div
         ref={header}
@@ -297,7 +302,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
         <div
           className="mx-auto max-w-7xl px-4 pb-3 md:px-8"
           // 6rem of top padding when open (clears the back button and matches the old layout), 1.5rem when collapsed
-          style={{ paddingTop: 'calc(6rem - 4.5rem * var(--p, 0))' }}
+          style={{ paddingTop: 'calc(6rem - 4.5rem * var(--p, 0) + env(safe-area-inset-top))' }}
         >
           <h1
             className="text-text mx-auto px-14 text-center leading-tight font-bold tracking-tight text-balance"
@@ -340,7 +345,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
       </div>
 
       {/* After the header in the DOM so that, at the same z-30, it paints above the header's full-width band */}
-      <GlassButton className="fixed top-4 left-4 z-30" onClick={back} title={backLabel} aria-label={backLabel}>
+      <GlassButton className="fixed top-[max(1rem,calc(env(safe-area-inset-top)+0.5rem))] left-4 z-30" onClick={back} title={backLabel} aria-label={backLabel}>
         <i className="i-mingcute-arrow-left-line text-base text-white" aria-hidden="true" />
       </GlassButton>
 

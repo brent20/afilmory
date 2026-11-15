@@ -13,9 +13,9 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ dateRange, location, showDateRange }: PageHeaderProps) => {
   return (
-    <header className="fixed top-0 right-0 left-0 z-100">
+    <header className="pt-safe fixed top-0 right-0 left-0 z-100 lg:pt-0">
       <LinearBlur
-        className="pointer-events-none absolute inset-x-0 z-[-1] h-15"
+        className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
         strength={128}
         side="top"

@@ -55,7 +55,7 @@ export const Component = () => {
 
         {showGallery && (
           isMobile ? (
-            <ScrollElementContext value={document.body}>
+            <ScrollElementContext value={(document.scrollingElement ?? document.documentElement) as HTMLElement}>
               <PhotosRoot />
             </ScrollElementContext>
           ) : (

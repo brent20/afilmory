@@ -11,6 +11,7 @@ import { siteConfig } from '~/config'
 import work from '~/config/work.json'
 import { useMobile } from '~/hooks/useMobile'
 import { photoAltText } from '~/lib/photo-alt'
+import { getActiveScroller } from '~/lib/scroll-target'
 import { PageHeaderLeft } from '~/modules/gallery/PageHeader/PageHeaderLeft'
 import { ActionIconButton } from '~/modules/gallery/PageHeader/utils'
 
@@ -59,9 +60,9 @@ const WorkHeader = () => {
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-100">
+    <header className="pt-safe fixed top-0 right-0 left-0 z-100 lg:pt-0">
       <LinearBlur
-        className="pointer-events-none absolute inset-x-0 z-[-1] h-15"
+        className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
         strength={128}
         side="top"
@@ -122,9 +123,10 @@ export const Component = () => {
   useLayoutEffect(() => {
     lastIds = featured.map((photo) => photo.id)
     if (restored && scrollRef.current) {
-      scrollRef.current.scrollTop = lastScrollTop
+      getActiveScroller(scrollRef.current).scrollTop = lastScrollTop
     } else {
       lastScrollTop = 0
+      window.scrollTo(0, 0)
     }
   }, [featured, restored])
 
@@ -142,12 +144,12 @@ export const Component = () => {
       <WorkHeader />
       <m.div
         ref={scrollRef}
-        className="bg-background text-text fixed inset-0 z-10 overflow-y-auto"
+        className="bg-background text-text min-h-svh lg:fixed lg:inset-0 lg:z-10 lg:min-h-0 lg:overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <div className="mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-8 sm:pt-24 sm:pb-20">
+        <div className="mx-auto max-w-6xl px-4 pt-[calc(4rem+env(safe-area-inset-top))] pb-[calc(3rem+env(safe-area-inset-bottom))] sm:px-8 sm:pt-24 sm:pb-20">
           {/* Same back button as the map page */}
           <GlassButton
             className="mb-6 sm:mb-8"
@@ -235,7 +237,7 @@ export const Component = () => {
                           // Tells the photo viewer to come back here (not the homepage) when it is closed.
                           state={{ returnTo: '/work' }}
                           onClick={() => {
-                            lastScrollTop = scrollRef.current?.scrollTop ?? 0
+                            lastScrollTop = getActiveScroller(scrollRef.current).scrollTop
                           }}
                           className="block overflow-hidden rounded-xl"
                         >
