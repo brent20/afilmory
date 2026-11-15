@@ -53,7 +53,7 @@ const RightsHeader = () => {
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-100 max-lg:h-0">
+    <header className="fixed top-0 right-0 left-0 z-100 max-lg:pointer-events-none max-lg:h-0 max-lg:[&_a]:pointer-events-auto max-lg:[&_button]:pointer-events-auto">
       <LinearBlur
         className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"

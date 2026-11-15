@@ -291,7 +291,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
     >
       <div
         ref={header}
-        className="sticky top-0 z-30 mx-auto w-[85%] lg:w-full [--title-from:1.875rem] [--title-to:1rem] sm:[--title-from:2.25rem] sm:[--title-to:1.125rem]"
+        className="sticky top-0 z-30 mx-auto w-[85%] max-lg:pointer-events-none lg:w-full [--title-from:1.875rem] [--title-to:1rem] sm:[--title-from:2.25rem] sm:[--title-to:1.125rem]"
       >
         <LinearBlur
           className="pointer-events-none absolute inset-x-0 top-0 z-[-1] h-[calc(100%+1.5rem)] max-lg:right-auto max-lg:left-[calc(50%-50vw)] max-lg:w-screen"
@@ -322,7 +322,7 @@ export const MetricsPage = ({ data }: { data: MetricsData }) => {
           <nav
             ref={navRef}
             aria-label={t('metrics.nav.label')}
-            className="bg-material-medium border-accent/20 mx-auto flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border p-1 backdrop-blur-2xl"
+            className="bg-material-medium border-accent/20 pointer-events-auto mx-auto flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border p-1 backdrop-blur-2xl"
             style={{ marginTop: 'calc(2.5rem - 1.75rem * var(--p, 0))' }}
           >
             {navItems.map(item => (
