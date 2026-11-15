@@ -1,4 +1,8 @@
 import { LinearBlur } from '@afilmory/ui'
+import { useRef } from 'react'
+
+import { TopBarBlur } from '~/components/common/TopBarBlur'
+import { useSafariTopBar } from '~/hooks/useSafariTopBar'
 
 import { PageHeaderCenter } from './PageHeaderCenter'
 import { PageHeaderLeft } from './PageHeaderLeft'
@@ -12,9 +16,13 @@ interface PageHeaderProps {
 }
 
 export const PageHeader = ({ dateRange, location, showDateRange }: PageHeaderProps) => {
+  const headerRef = useRef<HTMLElement>(null)
+  useSafariTopBar(headerRef)
+
   return (
-        <header className="fixed top-0 right-0 left-0 z-100 max-lg:pointer-events-none max-lg:invisible max-lg:h-0 max-lg:[&>*]:visible max-lg:[&_a]:pointer-events-auto max-lg:[&_button]:pointer-events-auto">
-        <LinearBlur 
+    <header ref={headerRef} className="fixed top-0 right-0 left-0 z-100">
+      <TopBarBlur />
+      <LinearBlur
         className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
         strength={128}

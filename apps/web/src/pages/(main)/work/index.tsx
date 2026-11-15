@@ -9,7 +9,9 @@ import { Link, useLocation, useNavigate, useNavigationType } from 'react-router'
 import { isCommandPaletteOpenAtom } from '~/atoms/app'
 import { siteConfig } from '~/config'
 import work from '~/config/work.json'
+import { TopBarBlur } from '~/components/common/TopBarBlur'
 import { useMobile } from '~/hooks/useMobile'
+import { useSafariTopBar } from '~/hooks/useSafariTopBar'
 import { photoAltText } from '~/lib/photo-alt'
 import { getActiveScroller } from '~/lib/scroll-target'
 import { PageHeaderLeft } from '~/modules/gallery/PageHeader/PageHeaderLeft'
@@ -58,9 +60,12 @@ const WorkHeader = () => {
   const navigate = useNavigate()
   const isMobile = useMobile()
   const setCommandPaletteOpen = useSetAtom(isCommandPaletteOpenAtom)
+  const headerRef = useRef<HTMLElement>(null)
+  useSafariTopBar(headerRef)
 
   return (
-    <header className="fixed top-0 right-0 left-0 z-100 max-lg:pointer-events-none max-lg:h-0 max-lg:[&_a]:pointer-events-auto max-lg:[&_button]:pointer-events-auto">
+    <header ref={headerRef} className="fixed top-0 right-0 left-0 z-100">
+      <TopBarBlur />
       <LinearBlur
         className="pointer-events-none absolute inset-x-0 z-[-1] h-[calc(3.75rem+env(safe-area-inset-top))] lg:h-15"
         tint="var(--color-background)"
